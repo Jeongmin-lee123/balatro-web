@@ -1,0 +1,11 @@
+{
+  "high_card": { "name": "하이 카드", "chips": 5, "mult": 1, "levelChips": 10, "levelMult": 1 },
+  "pair": { "name": "원 페어", "chips": 10, "mult": 2, "levelChips": 15, "levelMult": 1 },
+  "two_pair": { "name": "투 페어", "chips": 20, "mult": 2, "levelChips": 20, "levelMult": 1 },
+  "three_of_a_kind": { "name": "트리플", "chips": 30, "mult": 3, "levelChips": 20, "levelMult": 2 },
+  "straight": { "name": "스트레이트", "chips": 30, "mult": 4, "levelChips": 30, "levelMult": 3 },
+  "flush": { "name": "플러시", "chips": 35, "mult": 4, "levelChips": 15, "levelMult": 2 },
+  "full_house": { "name": "풀 하우스", "chips": 40, "mult": 4, "levelChips": 25, "levelMult": 2 },
+  "four_of_a_kind": { "name": "포카드", "chips": 60, "mult": 7, "levelChips": 30, "levelMult": 3 },
+  "straight_flush": { "name": "스트레이트 플러시", "chips": 100, "mult": 8, "levelChips": 40, "levelMult": 4 }
+}

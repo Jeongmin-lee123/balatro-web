@@ -1,0 +1,22 @@
+[
+  { "id": "joker", "name": "조커", "price": 2, "description": "배수 +4",
+    "effect": { "kind": "flat_mult", "mult": 4 } },
+  { "id": "greedy_joker", "name": "탐욕스러운 조커", "price": 5, "description": "점수 카드 중 다이아몬드 1장마다 배수 +3",
+    "effect": { "kind": "suit_mult", "suit": "diamonds", "mult": 3 } },
+  { "id": "lusty_joker", "name": "색욕의 조커", "price": 5, "description": "점수 카드 중 하트 1장마다 배수 +3",
+    "effect": { "kind": "suit_mult", "suit": "hearts", "mult": 3 } },
+  { "id": "wrathful_joker", "name": "분노한 조커", "price": 5, "description": "점수 카드 중 스페이드 1장마다 배수 +3",
+    "effect": { "kind": "suit_mult", "suit": "spades", "mult": 3 } },
+  { "id": "gluttonous_joker", "name": "폭식하는 조커", "price": 5, "description": "점수 카드 중 클로버 1장마다 배수 +3",
+    "effect": { "kind": "suit_mult", "suit": "clubs", "mult": 3 } },
+  { "id": "jolly_joker", "name": "쾌활한 조커", "price": 3, "description": "원 페어가 포함되면 배수 +8",
+    "effect": { "kind": "contains_mult", "hand": "pair", "mult": 8 } },
+  { "id": "zany_joker", "name": "엉뚱한 조커", "price": 4, "description": "트리플이 포함되면 배수 +12",
+    "effect": { "kind": "contains_mult", "hand": "three_of_a_kind", "mult": 12 } },
+  { "id": "sly_joker", "name": "교활한 조커", "price": 3, "description": "원 페어가 포함되면 칩 +50",
+    "effect": { "kind": "contains_chips", "hand": "pair", "chips": 50 } },
+  { "id": "half_joker", "name": "하프 조커", "price": 5, "description": "카드를 3장 이하로 내면 배수 +20",
+    "effect": { "kind": "small_hand_mult", "maxCards": 3, "mult": 20 } },
+  { "id": "abstract_joker", "name": "추상적 조커", "price": 4, "description": "가진 조커 1장마다 배수 +3",
+    "effect": { "kind": "per_joker_mult", "mult": 3 } }
+]

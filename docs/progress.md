@@ -7,7 +7,7 @@
 
 - 단계: 구현 중 (T-003 골격 완료)
 - 대상 게임: 발라트로 (Balatro)
-- 진행 중인 작업: T-016 조커 그림 생성 (사람). 9장 완료(abstract_joker만 남음)
+- 진행 중인 작업: T-005 기본 자료와 덱
 - 배포 주소: 없음
 
 ## 다음 할 일
@@ -29,5 +29,7 @@
 | 2026-10-21 | - | Claude | 문서 구조를 표준 4개 문서(requirements, design, tasks, progress)로 정리. 독서 기록장 기획 폐기 |
 | 2026-10-21 | T-001 | Claude | 대상 게임 발라트로 확정. requirements.md에 규칙 요약, 1차 기능 F1~F9, 2차 기능 F10~F18 작성 |
 | 2026-10-21 | T-002 | Claude | 위키와 수치 대조 완료. design.md에 폴더 구조, 타입, 공개 함수, 점수 순서, 화면 배치, 그림 방식, 프롬프트 작성. tasks.md를 T-003~T-017로 쪼갬 |
-| 2026-10-21 | T-016 | 사용자 | ChatGPT로 조커 그림 9장 생성, art/jokers/에 저장 |
+| 2026-10-21 | T-016 | 사용자 | ChatGPT로 조커 그림 10장 생성, art/jokers/에 저장 |
 | 2026-10-21 | T-003 | Claude | Vite + TypeScript 7 + Vitest 5 골격. 갈무리 글꼴은 쓰는 3개만 연결(빌드 50MB -> 1.2MB). 줄바꿈 LF 고정(.gitattributes) |
+| 2026-10-21 | T-005 | Claude | types.ts, rules.ts, data/ 4종, rng.ts(mulberry32), deck.ts와 테스트 9개 |
+| 2026-10-21 | T-016 | 사용자 | 조커 그림 10장 모두 완료 |

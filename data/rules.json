@@ -1,0 +1,14 @@
+{
+  "handSize": 8,
+  "maxSelect": 5,
+  "hands": 4,
+  "discards": 3,
+  "jokerSlots": 5,
+  "startingMoney": 4,
+  "moneyPerHandLeft": 1,
+  "interestStep": 5,
+  "interestCap": 5,
+  "shopSlots": 2,
+  "rerollBase": 5,
+  "rerollStep": 1
+}
