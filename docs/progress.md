@@ -88,3 +88,4 @@ npm run build      배포용 빌드 (dist/)
 | 2026-10-21 | T-004 | Claude | Vercel 프로젝트 balatro-web 생성, CLI로 프로덕션 배포. 지금은 빈 테이블 화면만 보인다 |
 | 2026-10-21 | T-004 | Claude | GitHub 공개 저장소 생성과 push. vercel git connect는 실패(Vercel GitHub 앱 미설치로 추정). README에 참여 방법 추가 |
 | 2026-10-21 | T-004 | Claude | 사용자가 Vercel GitHub 앱 설치, vercel git connect 성공. main push 자동 배포 확인 |
+| 2026-10-21 | T-011 | Claude | ui/cardView.ts, ui/faceArt.ts. 견본 코드를 TypeScript로 이식, 귀퉁이 글꼴을 갈무리로. 테스트 8개 |

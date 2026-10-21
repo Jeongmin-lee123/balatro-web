@@ -32,7 +32,7 @@
 
 | 번호 | 작업 | 기능 | 담당 | 상태 | 선행 |
 |---|---|---|---|---|---|
-| T-011 | cardView.ts, faceArt.ts, data/faces.json | F1 | AI | 대기 | T-005 |
+| T-011 | cardView.ts, faceArt.ts, data/faces.json | F1 | AI | 완료 | T-005 |
 | T-012 | 테이블 배치, sidebar.ts, roundScreen.ts | F1, F3, F4 | AI | 대기 | T-010, T-011 |
 | T-013 | cashOutScreen.ts, shopScreen.ts, jokerView.ts | F6, F7, F8 | AI | 대기 | T-012 |
 | T-014 | endScreen.ts, storage/records.ts | F5, F9 | AI | 대기 | T-012 |
