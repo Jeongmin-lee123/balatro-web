@@ -48,6 +48,8 @@ requirements.md 3.2의 F10~F18. 하나를 시작할 때 아래 양식으로 상�
 | 번호 | 작업 | 기능 | 담당 | 상태 | 선행 |
 |---|---|---|---|---|---|
 | T-018 | 행성 카드: 족보 레벨, 상점 진열, 구매 즉시 레벨업 | F10 | AI | 완료 | T-017 |
+| T-019 | 조커 5종 추가 (미친, 광기의, 익살스러운, 약삭빠른, 영리한) | F12 | AI | 완료 | T-017 |
+| T-020 | T-019 조커 5종 그림 생성 (design.md 5.3 표에서 "없음"인 것) | F12 | 사람 | 대기 | T-019 |
 
 ## 작업 상세
 
@@ -167,6 +169,18 @@ requirements.md 3.2의 F10~F18. 하나를 시작할 때 아래 양식으로 상�
 - 건드리는 파일: types.ts, rules.ts, shop.ts, scoring.ts, run.ts, data/planets.json, data/rules.json, ui/screens/shopScreen.ts, ui/screens/roundScreen.ts, ui/planetView.ts(새 파일)
 - 테스트 방법: tests/game/scoring.test.ts, shop.test.ts, run.test.ts에 추가
 - 지우거나 합친 코드: 없음
+
+### T-019 조커 5종 추가
+
+- 할 일: data/jokers.json에 5줄 추가. 모두 기존 효과 종류(contains_mult, contains_chips)라 코드 수정 없음 (design.md D-005)
+- 수치: 위키와 대조 완료. 모두 일반 등급 $4
+- 완료 기준: scoring.test.ts의 T-019 테스트 통과. 그림이 없는 동안 화면은 이름만 적힌 카드를 보여 준다
+- 지우거나 합친 코드: 없음
+
+### T-020 조커 5종 그림 (사람)
+
+- 할 일: design.md 5.3의 공통 프롬프트와 소재로 ChatGPT에서 그림을 만들고, 기준 이미지(art/jokers/joker.png)를 함께 첨부한다. art/jokers/<id>.png로 저장한 뒤 `npm run art`를 실행하고 커밋한다
+- 완료 기준: public/jokers/에 15장, 5.3 표의 "그림" 칸이 모두 "있음"
 
 ### 작업 상세 작성 양식
 

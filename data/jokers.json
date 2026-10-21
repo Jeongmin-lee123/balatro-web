@@ -18,5 +18,15 @@
   { "id": "half_joker", "name": "하프 조커", "price": 5, "description": "카드를 3장 이하로 내면 배수 +20",
     "effect": { "kind": "small_hand_mult", "maxCards": 3, "mult": 20 } },
   { "id": "abstract_joker", "name": "추상적 조커", "price": 4, "description": "가진 조커 1장마다 배수 +3",
-    "effect": { "kind": "per_joker_mult", "mult": 3 } }
+    "effect": { "kind": "per_joker_mult", "mult": 3 } },
+  { "id": "mad_joker", "name": "미친 조커", "price": 4, "description": "투 페어가 포함되면 배수 +10",
+    "effect": { "kind": "contains_mult", "hand": "two_pair", "mult": 10 } },
+  { "id": "crazy_joker", "name": "광기의 조커", "price": 4, "description": "스트레이트가 포함되면 배수 +12",
+    "effect": { "kind": "contains_mult", "hand": "straight", "mult": 12 } },
+  { "id": "droll_joker", "name": "익살스러운 조커", "price": 4, "description": "플러시가 포함되면 배수 +10",
+    "effect": { "kind": "contains_mult", "hand": "flush", "mult": 10 } },
+  { "id": "wily_joker", "name": "약삭빠른 조커", "price": 4, "description": "트리플이 포함되면 칩 +100",
+    "effect": { "kind": "contains_chips", "hand": "three_of_a_kind", "chips": 100 } },
+  { "id": "clever_joker", "name": "영리한 조커", "price": 4, "description": "투 페어가 포함되면 칩 +80",
+    "effect": { "kind": "contains_chips", "hand": "two_pair", "chips": 80 } }
 ]

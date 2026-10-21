@@ -46,6 +46,18 @@ describe("scoreHand", () => {
     expect(result.steps.map((s) => s.source)).toEqual(["원 페어", "K 하트", "K 다이아몬드", "탐욕스러운 조커", "조커"]);
   });
 
+  it("T-019 조커: 투 페어에는 미친 조커(배수)와 영리한 조커(칩)가 같이 반응한다", () => {
+    const result = scoreHand(cards("Kh Kc 4s 4d"), jokers("mad_joker", "clever_joker"));
+    expect(result).toMatchObject({ chips: 20 + 28 + 80, mult: 2 + 10 });
+  });
+
+  it("T-019 조커: 스트레이트, 플러시, 트리플 조커는 그 족보가 없으면 반응하지 않는다", () => {
+    const set = jokers("crazy_joker", "droll_joker", "wily_joker");
+    expect(scoreHand(cards("5h 6d 7s 8c 9h"), set)).toMatchObject({ chips: 30 + 35, mult: 4 + 12 });
+    expect(scoreHand(cards("2h 7h 9h Jh Kh"), set)).toMatchObject({ chips: 35 + (2 + 7 + 9 + 10 + 10), mult: 4 + 10 });
+    expect(scoreHand(cards("7h 7d 7s"), set)).toMatchObject({ chips: 30 + 21 + 100, mult: 3 });
+  });
+
   it("족보 레벨이 오르면 기본값에 레벨업 값을 더한다", () => {
     expect(handBase("pair", 1)).toEqual({ chips: 10, mult: 2 });
     expect(handBase("pair", 3)).toEqual({ chips: 10 + 15 * 2, mult: 2 + 1 * 2 });
