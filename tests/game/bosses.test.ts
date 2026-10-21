@@ -14,17 +14,25 @@ describe("pickBoss", () => {
     }
   });
 
-  it("모든 보스가 한 번씩 나오기 전에는 반복하지 않고, 다 나오면 다시 처음부터", () => {
+  it("일반 보스가 모두 한 번씩 나오기 전에는 반복하지 않고, 다 나오면 다시 처음부터", () => {
+    const regular = BOSS_LIST.filter((boss) => !boss.showdown);
     let seen: string[] = [];
     let rng = 7;
-    for (let i = 0; i < BOSS_LIST.length; i++) {
-      const picked = pickBoss(rng, 8, seen);
+    for (let i = 0; i < regular.length; i++) {
+      const picked = pickBoss(rng, 7, seen);
       expect(seen).not.toContain(picked.boss);
       seen = picked.seen;
       rng = picked.rngState;
     }
-    expect(new Set(seen).size).toBe(BOSS_LIST.length);
-    expect(pickBoss(rng, 8, seen).seen).toHaveLength(1);
+    expect(new Set(seen).size).toBe(regular.length);
+    expect(pickBoss(rng, 7, seen).seen).toHaveLength(1);
+  });
+
+  it("마지막 앤티는 쇼다운 보스만, 그 전에는 쇼다운 보스가 나오지 않는다", () => {
+    for (let seed = 0; seed < 200; seed++) {
+      expect(bossDef(pickBoss(seed, 8, []).boss).showdown).toBe(true);
+      expect(bossDef(pickBoss(seed, 7, []).boss).showdown).toBeFalsy();
+    }
   });
 });
 

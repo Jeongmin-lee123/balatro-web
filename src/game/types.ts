@@ -85,6 +85,9 @@ export type BossEffect =
   | { kind: "halve_base" }
   | { kind: "lower_level" }
   | { kind: "discard_random"; count: number }
+  | { kind: "shuffle_jokers" }
+  | { kind: "debuff_all_until_sell" }
+  | { kind: "disable_random_joker" }
   | { kind: "none" };
 
 export interface BossDef {
@@ -95,6 +98,8 @@ export interface BossDef {
   minAnte: number;
   /** 앤티 기본 점수에 곱하는 값 */
   multiplier: number;
+  /** 마지막 앤티에만 나오는 쇼다운 보스 */
+  showdown?: boolean;
   effect: BossEffect;
 }
 
@@ -214,6 +219,8 @@ export interface RoundState {
   score: number;
   lastScore: ScoreResult | null;
   sortBy: SortBy;
+  /** 신록의 잎: 이번 라운드에 조커를 팔아 효과를 풀었는지 */
+  bossCleared?: boolean;
 }
 
 export interface CashOutLine {

@@ -22,5 +22,13 @@
   { "id": "plant", "name": "화초", "description": "J, Q, K 카드가 모두 무효", "minAnte": 4, "multiplier": 2,
     "effect": { "kind": "debuff_face" } },
   { "id": "hook", "name": "갈고리", "description": "낼 때마다 남은 손패 2장을 무작위로 버린다", "minAnte": 1, "multiplier": 2,
-    "effect": { "kind": "discard_random", "count": 2 } }
+    "effect": { "kind": "discard_random", "count": 2 } },
+  { "id": "violet_vessel", "name": "보랏빛 그릇", "description": "목표 점수가 아주아주 크다", "minAnte": 8, "multiplier": 6, "showdown": true,
+    "effect": { "kind": "none" } },
+  { "id": "amber_acorn", "name": "호박색 도토리", "description": "라운드를 시작할 때 조커 순서를 섞는다", "minAnte": 8, "multiplier": 2, "showdown": true,
+    "effect": { "kind": "shuffle_jokers" } },
+  { "id": "verdant_leaf", "name": "신록의 잎", "description": "조커를 1장 팔기 전까지 모든 카드가 무효", "minAnte": 8, "multiplier": 2, "showdown": true,
+    "effect": { "kind": "debuff_all_until_sell" } },
+  { "id": "crimson_heart", "name": "진홍 심장", "description": "낼 때마다 조커 1장이 무작위로 꺼진다", "minAnte": 8, "multiplier": 2, "showdown": true,
+    "effect": { "kind": "disable_random_joker" } }
 ]

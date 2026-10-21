@@ -1,7 +1,7 @@
 import { evaluateHand } from "../../game/handEval";
 import { isDebuffed } from "../../game/bosses";
 import { RULES } from "../../game/rules";
-import { activeBoss, canPlay } from "../../game/run";
+import { activeBoss, activeDebuff, canPlay } from "../../game/run";
 import { handBase, handName } from "../../game/scoring";
 import type { RunState, ScoreResult } from "../../game/types";
 import { cardName, cardSvg } from "../cardView";
@@ -48,11 +48,12 @@ function preview(state: RunState): string {
 export function renderRoundScreen(state: RunState): string {
   const { round } = state;
   const effect = activeBoss(state)?.effect ?? null;
+  const debuff = activeDebuff(state);
   const cards = round.hand
     .map((card) => {
       const selected = round.selected.includes(card.id);
       const full = !selected && round.selected.length >= RULES.maxSelect;
-      const debuffed = effect !== null && isDebuffed(effect, card);
+      const debuffed = debuff !== null && isDebuffed(debuff, card);
       return button({
         action: { type: "toggle_card", cardId: card.id },
         label: debuffed ? `${cardName(card)} (무효)` : cardName(card),

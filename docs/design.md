@@ -86,7 +86,7 @@ data/
 ├─ rules.json            손패 수, 핸드, 버리기, 조커 칸, 이자, 리롤 값
 ├─ jokers.json           조커 목록 (id, 이름, 가격, 설명, 효과 종류와 값)
 ├─ planets.json          행성 12종 (id, 이름, 올리는 족보, 가격, 그림 색, 비밀 여부)
-├─ bosses.json           보스 12종 (id, 이름, 설명, 최소 앤티, 목표 배수, 효과)
+├─ bosses.json           보스 16종 (일반 12, 앤티 8 쇼다운 4. id, 이름, 설명, 최소 앤티, 목표 배수, 쇼다운 여부, 효과)
 ├─ tags.json             태그 8종 (id, 이름, 설명, 최소 앤티, 효과)
 ├─ tarots.json           타로 21종 (id, 이름, 로마 숫자, 가격, 설명, 효과)
 ├─ editions.json         에디션 4종 (id, 이름, 설명, 상점 확률, 추가 가격, 효과)
@@ -201,7 +201,7 @@ type Action =
 | bosses.ts | `bossDef(id)`, `pickBoss(rngState, ante, seen)`, `isDebuffed(effect, card)`, `roundLimits(effect)`, `canPlayCount(effect, count)` |
 | economy.ts | `cashOutLines({ ante, blindIndex, handsLeft, money }): CashOut`, `interest(money): number` |
 | shop.ts | `rollOffers(rngState, count, rolls?): [ShopOffer[], nextState]`, `planetPool(handPlays)`, `offerPrice(offer)`, `itemCost(state, offer)`, `sellValue(paid): number` |
-| run.ts | `newRun(seed): RunState`, `apply(state, action): RunState`, `currentTarget(state)`, `jokerDefs(owned)`, `canBuy(state, slot)`, `canPlay(state)`, `activeBoss(state)` |
+| run.ts | `newRun(seed): RunState`, `apply(state, action): RunState`, `currentTarget(state)`, `jokerDefs(owned)`, `canBuy(state, slot)`, `canPlay(state)`, `activeBoss(state)`, `activeDebuff(state)`, `canBuyVoucher(state)` |
 | records.ts | `loadRecords(): Records`, `saveRun(state): Records` |
 | editions.ts | `editionDef(id)`, `editionFromRoll(value)`, `rollJokerEdition(rngState)`, `jokerSlots(jokers)`, `editionBefore(id, source)`, `editionAfter(id, source)` |
 | inventory.ts | `hasJokerRoom(state, edition?)`, `addJoker(state, defId, paid, edition?)`, `usePlanet(levels, planetId)` |

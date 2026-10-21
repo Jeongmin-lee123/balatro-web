@@ -258,6 +258,44 @@ describe("보스 블라인드", () => {
     expect(run(state, ...select("hearts-13", "clubs-13"), { type: "play" }).round.hand).toEqual(played.round.hand);
   });
 
+  it("보랏빛 그릇은 목표 6배", () => {
+    expect(currentTarget(atBoss("violet_vessel", 8))).toBe(50000 * 6);
+  });
+
+  it("호박색 도토리는 보스 라운드를 선택할 때 조커 순서를 섞는다", () => {
+    const jokers = ["a", "b", "c", "d", "e"].map((uid) => ({ uid, defId: "joker", paid: 2 }));
+    const shop: RunState = { ...newRun(5), phase: "shop", ante: 8, blindIndex: 1, boss: "amber_acorn", jokers, shop: { offers: [], rerollCost: 5, packs: [] } };
+    const orders = new Set<string>();
+    for (let seed = 0; seed < 10; seed++) {
+      const round = run({ ...shop, rngState: seed }, { type: "next_round" }, { type: "select_blind" });
+      orders.add(round.jokers.map((j) => j.uid).join(""));
+      expect(round.jokers).toHaveLength(5);
+    }
+    expect(orders.size).toBeGreaterThan(1);
+  });
+
+  it("신록의 잎은 조커를 팔기 전까지 모든 카드를 무효로 만든다", () => {
+    const base = { ...atBoss("verdant_leaf", 8), jokers: [{ uid: "a", defId: "joker", paid: 2 }] };
+    const state = withHand(base, "Kh Kc 2s 3d 5c 7h 9s Jd");
+    const before = run(state, ...select("hearts-13", "clubs-13"), { type: "play" });
+    expect(before.round.lastScore).toMatchObject({ chips: 10, mult: 2 + 4 });
+    const sold = apply(state, { type: "sell", uid: "a" });
+    expect(sold.round.bossCleared).toBe(true);
+    const after = run(sold, ...select("hearts-13", "clubs-13"), { type: "play" });
+    expect(after.round.lastScore).toMatchObject({ chips: 30, mult: 2 });
+  });
+
+  it("진홍 심장은 낼 때마다 조커 1장을 끈다", () => {
+    const jokers = [
+      { uid: "a", defId: "joker", paid: 2 },
+      { uid: "b", defId: "joker", paid: 2 },
+    ];
+    const state = withHand({ ...atBoss("crimson_heart", 8), jokers }, "Kh Kc 2s 3d 5c 7h 9s Jd");
+    const played = run(state, ...select("hearts-13", "clubs-13"), { type: "play" });
+    expect(played.round.lastScore?.mult).toBe(2 + 4);
+    expect(played.round.lastScore?.steps[0]?.note).toBe("진홍 심장으로 꺼짐");
+  });
+
   it("머리는 하트를 무효로 만든다", () => {
     const state = withHand(atBoss("head"), "Kh Kc 2s 3d 5c 7h 9s Jd");
     const played = run(state, ...select("hearts-13", "clubs-13"), { type: "play" });

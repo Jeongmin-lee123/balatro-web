@@ -1,6 +1,6 @@
 // 보스 블라인드. 효과는 data/bosses.json의 "종류 + 값"으로 정하고, 종류별 처리는 이 파일에 둔다.
 import { nextRandom } from "./rng";
-import { BOSS_LIST, BOSSES } from "./rules";
+import { ANTE_COUNT, BOSS_LIST, BOSSES } from "./rules";
 import type { BossDef, BossEffect, Card } from "./types";
 
 export function bossDef(id: string): BossDef {
@@ -14,7 +14,9 @@ export function bossDef(id: string): BossDef {
  * 모두 나왔으면 다시 전체에서 고른다. 고른 보스는 seen에 더해 돌려준다.
  */
 export function pickBoss(rngState: number, ante: number, seen: readonly string[]): { boss: string; seen: string[]; rngState: number } {
-  const eligible = BOSS_LIST.filter((boss) => boss.minAnte <= ante);
+  // 마지막 앤티는 쇼다운 보스만, 다른 앤티는 일반 보스만
+  const showdown = ante >= ANTE_COUNT;
+  const eligible = BOSS_LIST.filter((boss) => boss.minAnte <= ante && Boolean(boss.showdown) === showdown);
   const fresh = eligible.filter((boss) => !seen.includes(boss.id));
   const pool = fresh.length > 0 ? fresh : eligible;
   const [value, next] = nextRandom(rngState);
@@ -29,6 +31,7 @@ export function isDebuffed(effect: BossEffect, card: Card): boolean {
   if (card.enhancement === "stone") return false;
   if (effect.kind === "debuff_suit") return card.suit === effect.suit;
   if (effect.kind === "debuff_face") return card.rank >= 11 && card.rank <= 13;
+  if (effect.kind === "debuff_all_until_sell") return true;
   return false;
 }
 

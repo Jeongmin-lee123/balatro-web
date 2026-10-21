@@ -18,6 +18,7 @@ import type {
   Action,
   BlindIndex,
   BossDef,
+  BossEffect,
   Card,
   CashOut,
   HandLevels,
@@ -145,7 +146,18 @@ function selectBlind(state: RunState): RunState {
   const extra = taken.reduce((sum, tag) => sum + (tag.effect.kind === "hand_size" ? tag.effect.amount : 0), 0);
   const { drawn, rest: drawPile } = drawCards(state.round.drawPile, extra);
   const hand = sortHand([...state.round.hand, ...drawn], state.round.sortBy);
-  return { ...state, phase: "round", tags: rest, round: { ...state.round, hand, drawPile } };
+  const selected: RunState = { ...state, phase: "round", tags: rest, round: { ...state.round, hand, drawPile } };
+  // 호박색 도토리: 보스 라운드를 시작할 때 조커 순서를 섞는다
+  if (activeBoss(state)?.effect.kind !== "shuffle_jokers") return selected;
+  const [jokers, rngState] = shuffle(state.jokers, state.rngState);
+  return { ...selected, jokers, rngState };
+}
+
+/** 점수와 화면에 쓰는 보스 무효 효과. 신록의 잎은 조커를 팔면 풀린다 */
+export function activeDebuff(state: RunState): BossEffect | null {
+  const effect = activeBoss(state)?.effect ?? null;
+  if (effect?.kind === "debuff_all_until_sell" && state.round.bossCleared) return null;
+  return effect;
 }
 
 /** 스몰, 빅 블라인드만 건너뛸 수 있다. 태그를 받고 다음 블라인드 선택으로 넘어간다 */
@@ -237,13 +249,21 @@ function play(state: RunState): RunState {
     return value;
   };
   const handLevels = effect?.kind === "lower_level" ? lowerPlayedLevel(state.handLevels, taken) : state.handLevels;
-  const result = scoreHand(taken, jokerDefs(state.jokers), handLevels, {
-    isDebuffed: effect ? (card) => isDebuffed(effect, card) : undefined,
+  // 진홍 심장: 낼 때마다 조커 1장이 꺼진다
+  const disabled = effect?.kind === "disable_random_joker" && state.jokers.length > 0 ? Math.floor(random() * state.jokers.length) : -1;
+  const working = state.jokers.filter((_, i) => i !== disabled);
+  const debuff = activeDebuff(state);
+  const scored = scoreHand(taken, jokerDefs(working), handLevels, {
+    isDebuffed: debuff ? (card) => isDebuffed(debuff, card) : undefined,
     halveBase: effect?.kind === "halve_base",
     held,
     random,
-    jokerEditions: state.jokers.map((joker) => joker.edition),
+    jokerEditions: working.map((joker) => joker.edition),
   });
+  const off = state.jokers[disabled];
+  const result = off
+    ? { ...scored, steps: [{ source: jokerDefs([off])[0]?.name ?? "", chips: 0, mult: 0, note: "진홍 심장으로 꺼짐" }, ...scored.steps] }
+    : scored;
   const round = taking.round;
   const deck = result.shattered.length > 0 ? state.deck.filter((card) => !result.shattered.includes(card.id)) : state.deck;
   const score = state.round.score + result.total;
@@ -338,7 +358,10 @@ function buy(state: RunState, slot: number): RunState {
 function sell(state: RunState, uid: string): RunState {
   const joker = state.jokers.find((owned) => owned.uid === uid);
   if (!joker) return state;
-  return { ...state, money: state.money + sellValue(joker.paid), jokers: state.jokers.filter((owned) => owned.uid !== uid) };
+  const sold: RunState = { ...state, money: state.money + sellValue(joker.paid), jokers: state.jokers.filter((owned) => owned.uid !== uid) };
+  // 신록의 잎: 라운드 중에 조커를 팔면 무효가 풀린다
+  const leaf = state.phase === "round" && activeBoss(state)?.effect.kind === "debuff_all_until_sell";
+  return leaf ? { ...sold, round: { ...sold.round, bossCleared: true } } : sold;
 }
 
 /** 이번 앤티의 바우처를 산다. 할인은 바우처에 적용하지 않는다 (원작과 같음) */
