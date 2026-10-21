@@ -4,6 +4,7 @@
 결과물의 중심은 게임보다 **누가 와서 작업해도 이어갈 수 있는 문서와 구조**다.
 
 - 배포 주소: https://balatro-web-two.vercel.app
+- 저장소: https://github.com/Jeongmin-lee123/balatro-web
 - 현재 상태: `docs/progress.md` 참고
 
 ## 실행 방법
@@ -41,6 +42,27 @@ npm run build      배포용 빌드 (dist/)
    ├─ design.md         어떤 구조로 만들까
    ├─ tasks.md          어떤 순서로 구현할까
    └─ progress.md       지금 어디까지 했나
+```
+
+## 작업에 참여하는 방법
+
+1. 저장소 주인에게 Collaborator 초대를 받거나, 저장소를 fork한다.
+2. 받아서 준비한다.
+   ```
+   git clone https://github.com/Jeongmin-lee123/balatro-web.git
+   cd balatro-web
+   npm install
+   npm test
+   ```
+3. 아래 "처음 온 사람이 읽는 순서"대로 문서를 읽고, `docs/tasks.md`에서 상태가 "대기"인 작업 중 선행 작업이 끝난 것을 하나 고른다.
+4. 작업 중에는 `AGENTS.md` 규칙을 지킨다. 특히 작업 번호를 붙인 커밋, `docs/progress.md` 갱신, 이모지 금지.
+5. Collaborator는 main에 push, fork한 사람은 Pull Request를 보낸다.
+
+AI에게 맡길 때는 이렇게 시작하면 된다.
+
+```
+AGENTS.md와 docs/progress.md를 먼저 읽고, docs/tasks.md의 다음 작업을 진행해줘.
+작업 하나를 끝낼 때마다 progress.md와 tasks.md를 갱신하고 작업 번호를 붙여 커밋해줘.
 ```
 
 ## 처음 온 사람이 읽는 순서
