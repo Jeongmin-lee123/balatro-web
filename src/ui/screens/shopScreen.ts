@@ -1,5 +1,5 @@
 import { blindName, nextBlind, targetScore } from "../../game/blinds";
-import { JOKERS, PLANETS, RULES } from "../../game/rules";
+import { JOKERS, PLANETS, RULES, TAROTS } from "../../game/rules";
 import { bossDef } from "../../game/bosses";
 import { canBuy } from "../../game/run";
 import { offerPrice } from "../../game/shop";
@@ -7,9 +7,11 @@ import type { RunState, ShopOffer } from "../../game/types";
 import { button, esc } from "../dom";
 import { jokerCard } from "../jokerView";
 import { planetCard } from "../planetView";
+import { tarotCard } from "../tarotView";
 
 function blockedReason(state: RunState, offer: ShopOffer): string {
   if (offer.kind === "joker" && state.jokers.length >= RULES.jokerSlots) return "조커 칸이 가득 찼습니다";
+  if (offer.kind === "tarot" && state.consumables.length >= RULES.consumableSlots) return "소모품 칸이 가득 찼습니다";
   if (state.money < offerPrice(offer)) return "돈이 모자랍니다";
   return "";
 }
@@ -26,6 +28,10 @@ function offerCard(state: RunState, offer: ShopOffer | null, slot: number): stri
       key: `buy-${slot}`,
     }) + (reason ? `<p class="joker__reason">${reason}</p>` : "");
 
+  if (offer.kind === "tarot") {
+    const tarot = TAROTS[offer.id];
+    return tarot ? tarotCard(tarot, footer) : "";
+  }
   if (offer.kind === "planet") {
     const planet = PLANETS[offer.id];
     return planet ? planetCard(planet, state.handLevels[planet.hand], footer) : "";

@@ -10,6 +10,7 @@ import { renderEndScreen } from "./screens/endScreen";
 import { renderRoundScreen } from "./screens/roundScreen";
 import { renderShopScreen } from "./screens/shopScreen";
 import { renderSidebar } from "./sidebar";
+import { renderConsumableRow } from "./tarotView";
 
 function mainArea(state: RunState, records: Records): string {
   switch (state.phase) {
@@ -33,7 +34,10 @@ export function render(root: HTMLElement, state: RunState, records: Records): vo
     `<div class="table" data-phase="${state.phase}">
       <aside class="table__side">${renderSidebar(state)}</aside>
       <main class="table__main">
-        ${renderJokerRow(state, jokerDefs(state.jokers))}
+        <div class="top-row">
+          ${renderJokerRow(state, jokerDefs(state.jokers))}
+          ${renderConsumableRow(state)}
+        </div>
         ${mainArea(state, records)}
       </main>
       <footer class="table__foot">Balatro(LocalThunk) 비공식 팬 제작. 원작 그림과 소리는 쓰지 않았습니다.</footer>

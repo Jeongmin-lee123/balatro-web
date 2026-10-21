@@ -49,6 +49,7 @@ src/
 │  ├─ economy.ts         라운드 정산 (보상, 남은 핸드, 이자)
 │  ├─ shop.ts            진열, 구매, 리롤, 판매
 │  ├─ tags.ts            블라인드 태그 고르기, 즉시 지급 금액, 보관 태그 꺼내기
+│  ├─ tarots.ts          타로 사용 조건과 효과 (손패와 판 전체 덱을 함께 바꾼다)
 │  └─ run.ts             한 판의 상태 전이. apply(state, action) -> state
 ├─ ui/
 │  ├─ render.ts          상태의 phase를 보고 알맞은 화면 함수를 부른다
@@ -57,6 +58,7 @@ src/
 │  ├─ faceArt.ts         얼굴 카드 도트 SVG
 │  ├─ jokerView.ts       조커 카드 (그림 + 설명)
 │  ├─ planetView.ts      행성 카드 (색 하나로 만드는 도트 행성)
+│  ├─ tarotView.ts       타로 카드(로마 숫자 글자 카드)와 소모품 칸
 │  ├─ sidebar.ts         블라인드, 점수, 핸드/버리기 횟수, 돈, 앤티
 │  └─ screens/
 │     ├─ blindSelectScreen.ts 블라인드 3개 중 선택 또는 건너뛰기
@@ -81,6 +83,7 @@ data/
 ├─ planets.json          행성 9종 (id, 이름, 올리는 족보, 가격, 그림 색)
 ├─ bosses.json           보스 12종 (id, 이름, 설명, 최소 앤티, 목표 배수, 효과)
 ├─ tags.json             태그 8종 (id, 이름, 설명, 최소 앤티, 효과)
+├─ tarots.json           타로 12종 (id, 이름, 로마 숫자, 가격, 설명, 효과)
 └─ faces.json            J, Q, K 도트 격자와 팔레트
 public/
 └─ jokers/<id>.png       처리된 조커 그림 (256 x 384, 16색, 배경 그대로)
@@ -149,13 +152,14 @@ interface RunState {
   blindIndex: 0 | 1 | 2;        // 스몰, 빅, 보스
   money: number;
   jokers: OwnedJoker[];
+  deck: Card[]; consumables: string[]; lastTarot: string | null;   // 판 전체 덱, 소모품 칸, 바보용 (F14)
   handLevels: Record<HandType, number>;   // 족보 레벨, 처음 모두 1 (F10)
   boss: string; bossesSeen: string[];     // 이번 앤티 보스, 이번 판에 나온 보스 (F11)
   blindTags: string[]; tags: string[];    // 스몰, 빅 건너뛰기 태그, 보관 중인 태그 (F13)
   round: { drawPile: Card[]; hand: Card[]; selected: string[]; handsLeft: number; discardsLeft: number;
            score: number; lastScore: ScoreResult | null; sortBy: "rank" | "suit" };
   cashOut: { lines: { label: string; amount: number }[]; total: number } | null;
-  shop: { offers: ({ kind: "joker" | "planet"; id: string } | null)[]; rerollCost: number } | null;   // 산 칸은 null
+  shop: { offers: ({ kind: "joker" | "tarot" | "planet"; id: string; price?: number } | null)[]; rerollCost: number } | null;   // 산 칸은 null
   stats: { bestHand: number; handsPlayed: number };
 }
 
@@ -178,7 +182,7 @@ type Action =
 | 파일 | 공개 함수 |
 |---|---|
 | rng.ts | `nextRandom(state): [value, nextState]`, `shuffle(items, state): [items, nextState]` |
-| rules.ts | `HANDS`, `HAND_TYPES`, `BLINDS`, `RULES`, `JOKERS`(id로 찾기), `JOKER_IDS`, `PLANETS`, `PLANET_IDS`, `BOSSES`, `BOSS_LIST`, `ANTE_COUNT` |
+| rules.ts | `HANDS`, `HAND_TYPES`, `BLINDS`, `RULES`, `JOKERS`(id로 찾기), `JOKER_IDS`, `TAROTS`, `TAROT_IDS`, `PLANETS`, `PLANET_IDS`, `BOSSES`, `BOSS_LIST`, `TAGS`, `TAG_LIST`, `ANTE_COUNT` |
 | deck.ts | `SUITS`, `SUIT_NAMES`, `createDeck(): Card[]`, `drawCards(pile, count): { drawn, rest }`, `sortHand(cards, by): Card[]`, `rankLabel(rank)`, `cardLabel(card)` |
 | handEval.ts | `evaluateHand(cards): HandResult` |
 | scoring.ts | `scoreHand(cards, jokerDefs, levels?, rules?): ScoreResult` (rules: 무효 카드 판정, 기본값 절반), `handBase(type, level)`, `cardChips(card)`, `handName(hand)` |
@@ -189,6 +193,7 @@ type Action =
 | shop.ts | `rollOffers(rngState, count): [ShopOffer[], nextState]`, `offerPrice(offer)`, `sellValue(paid): number` |
 | run.ts | `newRun(seed): RunState`, `apply(state, action): RunState`, `currentTarget(state)`, `jokerDefs(owned)`, `canBuy(state, slot)`, `canPlay(state)`, `activeBoss(state)` |
 | records.ts | `loadRecords(): Records`, `saveRun(state): Records` |
+| tarots.ts | `tarotDef(id)`, `targetRange(effect)`, `canUseTarot(state, index)`, `useTarot(state, index)` |
 | tags.ts | `tagDef(id)`, `pickBlindTags(rngState, ante)`, `instantMoney(effect, state)`, `takeTags(held, kind)` |
 | savedRun.ts | `loadSavedRun(): RunState | null`, `storeRun(state)`, `clearSavedRun()`, `SAVE_VERSION` |
 
@@ -332,3 +337,5 @@ type Action =
 | D-011 | 2026-10-21 | 보스는 앤티가 바뀔 때 하나 고르고, 효과는 data/bosses.json의 종류 + 값으로 둔다. 앤티 8 전용 쇼다운 보스는 제외 (훅은 T-024에서 추가) | 조커와 같은 방식이라 보스 추가가 데이터 한 줄이 된다. 훅은 무작위 버림 처리가 따로 필요해 다음 작업으로 미룬다 |
 | D-012 | 2026-10-21 | 진행 중인 판은 행동마다 RunState를 통째로 저장하고, 형식이 바뀌면 SAVE_VERSION을 올려 이전 저장을 버린다 | RunState가 순수 데이터라 변환 코드가 필요 없다. 옛 저장을 새 모양으로 옮기는 코드는 지금 규모에서 유지 비용이 더 크다 |
 | D-013 | 2026-10-21 | 블라인드 선택 화면에 들어갈 때 손패를 미리 나눠 두고, 선택은 phase만 바꾼다. 저글링 태그만 선택 시점에 카드를 더 뽑는다 | round가 항상 유효한 값이라 화면과 저장이 단순해진다. 건너뛰기는 손패를 버리고 다음 블라인드의 손패를 새로 나눈다 |
+| D-014 | 2026-10-21 | 덱을 판 전체 상태(RunState.deck)로 두고 라운드마다 이 덱을 섞는다. 카드 id는 처음 이름을 유지한다 | 타로와 카드 강화(F15)가 바꾼 카드가 다음 라운드에도 남아야 한다. id를 바꾸지 않으면 손패와 덱의 같은 카드를 쉽게 찾는다 |
+| D-015 | 2026-10-21 | 타로 카드 그림은 로마 숫자와 이름을 쓴 글자 카드로 시작한다 | 조커처럼 ChatGPT 그림을 넣을 수 있지만 사람 작업이 필요하다. 글자 카드만으로도 구분이 된다 |

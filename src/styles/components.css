@@ -248,12 +248,14 @@
 
 .joker,
 .planet,
+.tarot,
 .joker-slot {
   min-width: 0;
 }
 
 .joker,
-.planet {
+.planet,
+.tarot {
   display: grid;
   align-content: start;
   justify-items: center;
@@ -806,5 +808,56 @@
 @media (max-width: 899px) {
   .table__side .held-tags {
     grid-column: 1 / -1;
+  }
+}
+
+/* 조커 줄과 소모품 칸을 한 줄에. 휴대폰에서는 위아래로 */
+.top-row {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 2fr);
+  gap: var(--gap-3);
+}
+
+.consumable-row__cards {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* 타로 카드: 그림 대신 로마 숫자와 이름 */
+.tarot__face {
+  width: min(100%, 106px);
+  aspect-ratio: 2 / 3;
+  background: var(--tarot);
+  border: 2px solid var(--tarot-edge);
+  border-radius: 5px;
+  box-shadow: var(--lift);
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--gap-2);
+  color: var(--tarot-edge);
+  font-family: var(--font-label);
+}
+
+.tarot__numeral {
+  font-size: var(--size-huge);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.tarot__title {
+  font-size: var(--size-small);
+}
+
+.btn--use {
+  background: var(--chips);
+}
+
+@media (max-width: 899px) {
+  .top-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .consumable-row__cards {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }

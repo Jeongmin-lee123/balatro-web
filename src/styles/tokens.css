@@ -22,6 +22,8 @@
   --blind-boss: #9e2f2a;
   --select: #e1b03f;
   --space: #1a2236;
+  --tarot: #3b2a5c;
+  --tarot-edge: #b89ae0;
 
   /* 갈무리는 정해진 크기의 배수에서 가장 선명하다. Galmuri14는 15px, Galmuri11은 12px 기준. */
   --font-body: "Galmuri14", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
