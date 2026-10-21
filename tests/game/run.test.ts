@@ -7,7 +7,10 @@ import { cards, enhanced, sealed } from "./cards";
 /** 손패를 원하는 카드로 바꾸고, 블라인드 선택 화면이면 라운드로 들어간 상태 */
 function withHand(state: RunState, text: string, overrides: Partial<RunState["round"]> = {}): RunState {
   const phase = state.phase === "blind_select" ? "round" : state.phase;
-  return { ...state, phase, round: { ...state.round, hand: cards(text), selected: [], ...overrides } };
+  const hand = cards(text);
+  // 같은 카드가 손패와 덱 더미에 동시에 있지 않게 더미에서 뺀다
+  const drawPile = state.round.drawPile.filter((card) => !hand.some((h) => h.id === card.id));
+  return { ...state, phase, round: { ...state.round, hand, drawPile, selected: [], ...overrides } };
 }
 
 /** 새 판에서 스몰 블라인드를 선택해 라운드에 들어간 상태 */

@@ -2,6 +2,7 @@
 import { SUITS } from "./deck";
 import { editionFromRoll } from "./editions";
 import { addJoker, hasJokerRoom, usePlanet } from "./inventory";
+import { consumableSlots, discounted, modifiers } from "./vouchers";
 import { nextRandom } from "./rng";
 import { JOKER_IDS, JOKERS, PACK_LIST, PACKS, PLANET_IDS, RULES, TAROT_IDS } from "./rules";
 import type { Card, Enhancement, OpenPack, PackChoice, PackDef, PackOffer, Rank, RunState, Seal } from "./types";
@@ -18,6 +19,11 @@ export function packDef(id: string): PackDef {
 
 export function packPrice(offer: PackOffer): number {
   return offer.price ?? packDef(offer.id).price;
+}
+
+/** 바우처 할인까지 적용한 상점 가격 */
+export function packCost(state: Pick<RunState, "vouchers">, offer: PackOffer): number {
+  return discounted(packPrice(offer), modifiers(state.vouchers).discount);
 }
 
 /** 0 이상 1 미만의 난수를 차례로 꺼내는 함수와, 다 쓴 뒤의 상태를 읽는 함수 */
@@ -71,7 +77,7 @@ export function openPack(state: RunState, packId: string): { pack: OpenPack; rng
         return { kind: "planet", id: pickFrom(PLANET_IDS, random.next()) };
       case "joker": {
         const id = pickFrom(JOKER_IDS, random.next());
-        const edition = editionFromRoll(random.next());
+        const edition = editionFromRoll(random.next(), modifiers(state.vouchers).editionRate);
         return edition ? { kind: "joker", id, edition } : { kind: "joker", id };
       }
       case "card":
@@ -84,7 +90,7 @@ export function openPack(state: RunState, packId: string): { pack: OpenPack; rng
 export function canPick(state: RunState, index: number): boolean {
   const choice = state.pack?.choices[index];
   if (!choice) return false;
-  if (choice.kind === "tarot") return state.consumables.length < RULES.consumableSlots;
+  if (choice.kind === "tarot") return state.consumables.length < consumableSlots(state);
   if (choice.kind === "joker") return hasJokerRoom(state, choice.edition);
   return true;
 }

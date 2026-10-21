@@ -43,10 +43,11 @@ describe("isDebuffed", () => {
 });
 
 describe("roundLimits, canPlayCount", () => {
-  it("바늘은 핸드 1, 물은 버리기 0, 보스가 아니면 기본값", () => {
-    expect(roundLimits(bossDef("needle").effect).hands).toBe(1);
-    expect(roundLimits(bossDef("water").effect).discards).toBe(0);
-    expect(roundLimits(null)).toEqual({ hands: RULES.hands, discards: RULES.discards });
+  it("바늘은 핸드 1, 물은 버리기 0, 보스가 아니면 받은 기본값 그대로", () => {
+    const base = { hands: RULES.hands, discards: RULES.discards };
+    expect(roundLimits(bossDef("needle").effect, base).hands).toBe(1);
+    expect(roundLimits(bossDef("water").effect, base).discards).toBe(0);
+    expect(roundLimits(null, { hands: 5, discards: 4 })).toEqual({ hands: 5, discards: 4 });
   });
 
   it("점쟁이는 5장일 때만", () => {

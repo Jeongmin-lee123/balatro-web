@@ -9,7 +9,8 @@ import tagsJson from "../../data/tags.json";
 import tarotsJson from "../../data/tarots.json";
 import editionsJson from "../../data/editions.json";
 import packsJson from "../../data/packs.json";
-import type { BossDef, EditionDef, EditionId, HandType, JokerDef, PackDef, PlanetDef, ShopItemKind, TagDef, TarotDef } from "./types";
+import vouchersJson from "../../data/vouchers.json";
+import type { BossDef, EditionDef, EditionId, HandType, JokerDef, PackDef, PlanetDef, ShopItemKind, TagDef, TarotDef, VoucherDef } from "./types";
 
 export interface HandInfo {
   name: string;
@@ -69,6 +70,11 @@ export const EDITIONS = Object.fromEntries(EDITION_LIST.map((edition) => [editio
 export const PACK_LIST = packsJson as PackDef[];
 
 export const PACKS: Record<string, PackDef> = Object.fromEntries(PACK_LIST.map((pack) => [pack.id, pack]));
+
+/** data/vouchers.json 순서 그대로 */
+export const VOUCHER_LIST = vouchersJson as VoucherDef[];
+
+export const VOUCHERS: Record<string, VoucherDef> = Object.fromEntries(VOUCHER_LIST.map((voucher) => [voucher.id, voucher]));
 
 export const ANTE_COUNT = BLINDS.anteBase.length;
 

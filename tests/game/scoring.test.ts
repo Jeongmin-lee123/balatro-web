@@ -126,6 +126,7 @@ describe("scoreHand", () => {
     expect(scoreHand([sealed("Kh", "gold"), ...cards("Kc")], []).money).toBe(3);
     expect(scoreHand([sealed("Kh", "gold"), ...cards("Kc 2s")], []).money).toBe(3);
     expect(scoreHand([...cards("Kh Kc"), sealed("2s", "gold")], []).money).toBe(0);
+    expect(scoreHand([sealed("Kh", "gold"), ...cards("Kc")], []).steps.some((s) => s.note === "금 봉인 $3")).toBe(true);
   });
 
   it("빨강 봉인 강철은 손에서 x1.5를 두 번", () => {

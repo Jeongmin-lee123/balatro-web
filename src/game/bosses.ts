@@ -1,6 +1,6 @@
 // 보스 블라인드. 효과는 data/bosses.json의 "종류 + 값"으로 정하고, 종류별 처리는 이 파일에 둔다.
 import { nextRandom } from "./rng";
-import { BOSS_LIST, BOSSES, RULES } from "./rules";
+import { BOSS_LIST, BOSSES } from "./rules";
 import type { BossDef, BossEffect, Card } from "./types";
 
 export function bossDef(id: string): BossDef {
@@ -32,11 +32,11 @@ export function isDebuffed(effect: BossEffect, card: Card): boolean {
   return false;
 }
 
-/** 라운드 시작 때의 핸드, 버리기 횟수 */
-export function roundLimits(effect: BossEffect | null): { hands: number; discards: number } {
+/** 라운드 시작 때의 핸드, 버리기 횟수. base는 바우처를 반영한 기본값 */
+export function roundLimits(effect: BossEffect | null, base: { hands: number; discards: number }): { hands: number; discards: number } {
   return {
-    hands: effect?.kind === "hands" ? effect.count : RULES.hands,
-    discards: effect?.kind === "discards" ? effect.count : RULES.discards,
+    hands: effect?.kind === "hands" ? effect.count : base.hands,
+    discards: effect?.kind === "discards" ? effect.count : base.discards,
   };
 }
 

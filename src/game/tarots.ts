@@ -2,8 +2,9 @@
 // 카드를 바꾸면 손패와 판 전체 덱(state.deck)을 함께 바꿔 다음 라운드에도 남게 한다.
 import { sortHand } from "./deck";
 import { addJoker, hasJokerRoom } from "./inventory";
+import { consumableSlots } from "./vouchers";
 import { nextRandom } from "./rng";
-import { JOKER_IDS, JOKERS, RULES, TAROT_IDS, TAROTS } from "./rules";
+import { JOKER_IDS, JOKERS, TAROT_IDS, TAROTS } from "./rules";
 import { sellValue } from "./shop";
 import type { Card, EditionId, Rank, RunState, TarotDef, TarotEffect } from "./types";
 
@@ -38,7 +39,7 @@ export function targetRange(effect: TarotEffect): { min: number; max: number } |
 
 /** 이 타로를 쓰고 나면 비는 칸까지 포함한 소모품 빈 칸 수 */
 function roomAfterUse(state: RunState): number {
-  return RULES.consumableSlots - (state.consumables.length - 1);
+  return consumableSlots(state) - (state.consumables.length - 1);
 }
 
 export function canUseTarot(state: RunState, index: number): boolean {
@@ -133,7 +134,7 @@ function applyEffect(state: RunState, effect: TarotEffect): RunState {
 
 /** 소모품 칸이 빈 만큼(최대 count장) 무작위 타로를 만든다. 황제 타로와 보라 봉인이 쓴다 */
 export function addRandomTarots(state: RunState, count: number): RunState {
-  const room = RULES.consumableSlots - state.consumables.length;
+  const room = consumableSlots(state) - state.consumables.length;
   if (room <= 0 || count <= 0) return state;
   const [ids, rngState] = randomIds(TAROT_IDS, Math.min(count, room), state.rngState);
   return { ...state, rngState, consumables: [...state.consumables, ...ids] };

@@ -7,20 +7,23 @@ export function editionDef(id: EditionId): EditionDef {
   return EDITIONS[id];
 }
 
-/** 0 이상 1 미만의 값 하나로 에디션을 정한다. data/editions.json 순서대로 확률 구간을 나눈다 */
-export function editionFromRoll(value: number): EditionId | undefined {
+/**
+ * 0 이상 1 미만의 값 하나로 에디션을 정한다. data/editions.json 순서대로 확률 구간을 나눈다.
+ * rate는 바우처 연마의 배율로, 칸을 늘리는 에디션(네거티브)에는 곱하지 않는다
+ */
+export function editionFromRoll(value: number, rate = 1): EditionId | undefined {
   let threshold = value;
   for (const edition of EDITION_LIST) {
-    threshold -= edition.chance;
+    threshold -= edition.effect.kind === "slot" ? edition.chance : edition.chance * rate;
     if (threshold < 0) return edition.id;
   }
   return undefined;
 }
 
 /** 상점 조커 하나에 붙을 에디션 */
-export function rollJokerEdition(rngState: number): [EditionId | undefined, number] {
+export function rollJokerEdition(rngState: number, rate = 1): [EditionId | undefined, number] {
   const [value, next] = nextRandom(rngState);
-  return [editionFromRoll(value), next];
+  return [editionFromRoll(value, rate), next];
 }
 
 /** 조커 칸 = 기본 칸 + 네거티브 조커 수 */

@@ -219,6 +219,26 @@ export interface CashOut {
   total: number;
 }
 
+export type VoucherEffect =
+  | { kind: "shop_slots"; amount: number }
+  | { kind: "discount"; percent: number }
+  | { kind: "edition_rate"; multiplier: number }
+  | { kind: "reroll_discount"; amount: number }
+  | { kind: "consumable_slots"; amount: number }
+  | { kind: "hands"; amount: number }
+  | { kind: "discards"; amount: number }
+  | { kind: "shop_weight"; item: ShopItemKind; multiplier: number }
+  | { kind: "interest_cap"; cap: number }
+  | { kind: "hand_size"; amount: number };
+
+export interface VoucherDef {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  effect: VoucherEffect;
+}
+
 export type PackContent = "tarot" | "planet" | "card" | "joker";
 
 export interface PackDef {
@@ -281,6 +301,10 @@ export interface RunState {
   consumables: string[];
   /** 마지막으로 쓴 타로 (바보 제외). 바보 카드가 만든다 */
   lastTarot: string | null;
+  /** 산 바우처 id. 판 내내 규칙을 바꾼다 */
+  vouchers: string[];
+  /** 이번 앤티 상점의 바우처. 사면 null, 앤티가 바뀌면 새로 고른다 */
+  voucherOffer: string | null;
   handLevels: HandLevels;
   /** 이번 앤티의 보스 id. 앤티가 바뀔 때 새로 고른다 */
   boss: string;
@@ -310,6 +334,7 @@ export type Action =
   | { type: "sell"; uid: string }
   | { type: "reroll" }
   | { type: "buy_pack"; slot: number }
+  | { type: "buy_voucher" }
   | { type: "pick_pack"; index: number }
   | { type: "skip_pack" }
   | { type: "move_joker"; uid: string; to: number }

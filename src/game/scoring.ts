@@ -104,7 +104,7 @@ export function scoreHand(cards: readonly Card[], jokers: readonly JokerDef[], l
       money += enhanced.money;
       if (card.seal === "gold") {
         money += GOLD_SEAL_MONEY;
-        steps.push({ source: label, chips: 0, mult: 0, note: `금 봉인 ${GOLD_SEAL_MONEY}` });
+        steps.push({ source: label, chips: 0, mult: 0, note: `금 봉인 $${GOLD_SEAL_MONEY}` });
       }
       for (const joker of jokers) {
         const gain = onCardScored(joker.effect, card);

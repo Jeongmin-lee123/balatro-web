@@ -7,12 +7,13 @@ import { cashOutLines } from "./economy";
 import { addJoker, hasJokerRoom, usePlanet } from "./inventory";
 import { evaluateHand } from "./handEval";
 import { nextRandom, shuffle } from "./rng";
-import { openPack, packPrice, pickFromPack, rollPacks } from "./packs";
+import { openPack, packCost, pickFromPack, rollPacks } from "./packs";
 import { ANTE_COUNT, HAND_TYPES, JOKERS, RULES } from "./rules";
 import { scoreHand } from "./scoring";
-import { offerPrice, rollOffers, sellValue } from "./shop";
+import { itemCost, rollOffers, sellValue } from "./shop";
 import { instantMoney, pickBlindTags, tagDef, takeTags } from "./tags";
 import { addRandomTarots, tarotDef, useTarot } from "./tarots";
+import { consumableSlots, modifiers, pickVoucher, voucherDef, type Modifiers } from "./vouchers";
 import type {
   Action,
   BlindIndex,
@@ -27,10 +28,16 @@ import type {
   SortBy,
 } from "./types";
 
-function dealRound(rngState: number, sortBy: SortBy, boss: BossDef | null, fullDeck: readonly Card[]): { round: RoundState; rngState: number } {
+function dealRound(
+  rngState: number,
+  sortBy: SortBy,
+  boss: BossDef | null,
+  fullDeck: readonly Card[],
+  mods: Modifiers,
+): { round: RoundState; rngState: number } {
   const [deck, next] = shuffle(fullDeck, rngState);
-  const limits = roundLimits(boss?.effect ?? null);
-  const { drawn, rest } = drawCards(deck, RULES.handSize);
+  const limits = roundLimits(boss?.effect ?? null, mods);
+  const { drawn, rest } = drawCards(deck, mods.handSize);
   return {
     rngState: next,
     round: {
@@ -63,7 +70,12 @@ function enterBlind(state: RunState, ante: number, blindIndex: BlindIndex, newAn
     ({ boss, seen: bossesSeen } = pickedBoss);
     ({ tags: blindTags, rngState } = pickedTags);
   }
-  const dealt = dealRound(rngState, state.round.sortBy, activeBoss({ blindIndex, boss }), state.deck);
+  let { voucherOffer } = state;
+  if (newAnte) {
+    const pickedVoucher = pickVoucher(rngState, state.vouchers);
+    ({ voucher: voucherOffer, rngState } = pickedVoucher);
+  }
+  const dealt = dealRound(rngState, state.round.sortBy, activeBoss({ blindIndex, boss }), state.deck, modifiers(state.vouchers));
   return {
     ...state,
     phase: "blind_select",
@@ -72,6 +84,7 @@ function enterBlind(state: RunState, ante: number, blindIndex: BlindIndex, newAn
     boss,
     bossesSeen,
     blindTags,
+    voucherOffer,
     round: dealt.round,
     rngState: dealt.rngState,
     cashOut: null,
@@ -91,6 +104,8 @@ export function newRun(seed: number): RunState {
     deck: createDeck(),
     consumables: [],
     lastTarot: null,
+    vouchers: [],
+    voucherOffer: null,
     handLevels: Object.fromEntries(HAND_TYPES.map((type) => [type, 1])) as HandLevels,
     boss: "",
     bossesSeen: [],
@@ -185,7 +200,13 @@ const GOLD_CARD_MONEY = 3;
 
 /** 라운드를 이겼을 때의 정산. 보스를 이기면 투자 태그가, 손에 남은 금 카드는 $3씩 발동한다 */
 function winRound(state: RunState, held: readonly Card[]): RunState {
-  const base = cashOutLines({ ante: state.ante, blindIndex: state.blindIndex, handsLeft: state.round.handsLeft, money: state.money });
+  const base = cashOutLines({
+    ante: state.ante,
+    blindIndex: state.blindIndex,
+    handsLeft: state.round.handsLeft,
+    money: state.money,
+    interestCap: modifiers(state.vouchers).interestCap,
+  });
   const { taken, rest } = state.blindIndex === 2 ? takeTags(state.tags, "boss_bonus") : { taken: [], rest: state.tags };
   const bonus = taken.map((tag) => ({ label: tag.name, amount: tag.effect.kind === "boss_bonus" ? tag.effect.amount : 0 }));
   const gold = held.filter((card) => card.enhancement === "gold").length;
@@ -255,7 +276,8 @@ function discard(state: RunState): RunState {
 /** 정산을 받고 상점으로. 쿠폰 태그는 처음 진열과 팩을 무료로, 주사위 태그는 다시 굴리기를 $0부터 */
 function collect(state: RunState): RunState {
   if (!state.cashOut) return state;
-  const [rolled, afterOffers] = rollOffers(state.rngState, RULES.shopSlots);
+  const mods = modifiers(state.vouchers);
+  const [rolled, afterOffers] = rollOffers(state.rngState, mods.shopSlots, mods);
   const [rolledPacks, rngState] = rollPacks(afterOffers, RULES.packSlots);
   const coupon = takeTags(state.tags, "free_shop");
   const d6 = takeTags(coupon.rest, "free_reroll");
@@ -270,17 +292,17 @@ function collect(state: RunState): RunState {
     shop: {
       offers: free ? rolled.map((offer) => ({ ...offer, price: 0 })) : rolled,
       packs: free ? rolledPacks.map((pack) => ({ ...pack, price: 0 })) : rolledPacks,
-      rerollCost: d6.taken.length > 0 ? 0 : RULES.rerollBase,
+      rerollCost: d6.taken.length > 0 ? 0 : mods.rerollBase,
     },
   };
 }
 
 function buyPack(state: RunState, slot: number): RunState {
   const offer = state.shop?.packs[slot];
-  if (!state.shop || !offer || state.money < packPrice(offer)) return state;
+  if (!state.shop || !offer || state.money < packCost(state, offer)) return state;
   const paid: RunState = {
     ...state,
-    money: state.money - packPrice(offer),
+    money: state.money - packCost(state, offer),
     shop: { ...state.shop, packs: state.shop.packs.map((pack, i) => (i === slot ? null : pack)) },
   };
   const opened = openPack(paid, offer.id);
@@ -290,16 +312,16 @@ function buyPack(state: RunState, slot: number): RunState {
 /** 상점 칸이 지금 살 수 있는 상태인지. 화면의 버튼 비활성화도 이 함수를 쓴다 */
 export function canBuy(state: RunState, slot: number): boolean {
   const offer = state.shop?.offers[slot];
-  if (!offer || state.money < offerPrice(offer)) return false;
+  if (!offer || state.money < itemCost(state, offer)) return false;
   if (offer.kind === "joker") return hasJokerRoom(state, offer.edition);
-  if (offer.kind === "tarot") return state.consumables.length < RULES.consumableSlots;
+  if (offer.kind === "tarot") return state.consumables.length < consumableSlots(state);
   return true;
 }
 
 function buy(state: RunState, slot: number): RunState {
   const offer = state.shop?.offers[slot];
   if (!state.shop || !offer || !canBuy(state, slot)) return state;
-  const price = offerPrice(offer);
+  const price = itemCost(state, offer);
   const bought: RunState = {
     ...state,
     money: state.money - price,
@@ -317,6 +339,17 @@ function sell(state: RunState, uid: string): RunState {
   return { ...state, money: state.money + sellValue(joker.paid), jokers: state.jokers.filter((owned) => owned.uid !== uid) };
 }
 
+/** 이번 앤티의 바우처를 산다. 할인은 바우처에 적용하지 않는다 (원작과 같음) */
+export function canBuyVoucher(state: RunState): boolean {
+  return state.voucherOffer !== null && state.money >= voucherDef(state.voucherOffer).price;
+}
+
+function buyVoucher(state: RunState): RunState {
+  if (!state.voucherOffer || !canBuyVoucher(state)) return state;
+  const voucher = voucherDef(state.voucherOffer);
+  return { ...state, money: state.money - voucher.price, vouchers: [...state.vouchers, voucher.id], voucherOffer: null };
+}
+
 function sellConsumable(state: RunState, index: number): RunState {
   const id = state.consumables[index];
   if (!id) return state;
@@ -329,7 +362,8 @@ function sellConsumable(state: RunState, index: number): RunState {
 
 function reroll(state: RunState): RunState {
   if (!state.shop || state.money < state.shop.rerollCost) return state;
-  const [offers, rngState] = rollOffers(state.rngState, RULES.shopSlots);
+  const mods = modifiers(state.vouchers);
+  const [offers, rngState] = rollOffers(state.rngState, mods.shopSlots, mods);
   return {
     ...state,
     rngState,
@@ -369,6 +403,7 @@ const ALLOWED: Record<Action["type"], readonly RunState["phase"][]> = {
   collect: ["cash_out"],
   buy: ["shop"],
   buy_pack: ["shop"],
+  buy_voucher: ["shop"],
   pick_pack: ["pack_open"],
   skip_pack: ["pack_open"],
   sell: ["blind_select", "round", "shop", "pack_open"],
@@ -410,6 +445,8 @@ export function apply(state: RunState, action: Action): RunState {
       return reroll(state);
     case "buy_pack":
       return buyPack(state, action.slot);
+    case "buy_voucher":
+      return buyVoucher(state);
     case "pick_pack":
       return pickFromPack(state, action.index);
     case "skip_pack":
