@@ -1,0 +1,21 @@
+/* 갈무리(SIL OFL)에서 실제로 쓰는 글꼴 3개만 불러온다. 패키지의 galmuri.css를 통째로 쓰면 11종 50MB가 빌드에 들어간다. */
+@font-face {
+  font-family: Galmuri14;
+  font-weight: 400;
+  font-display: swap;
+  src: url("galmuri/dist/Galmuri14.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: Galmuri11;
+  font-weight: 400;
+  font-display: swap;
+  src: url("galmuri/dist/Galmuri11.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: Galmuri11;
+  font-weight: 700;
+  font-display: swap;
+  src: url("galmuri/dist/Galmuri11-Bold.woff2") format("woff2");
+}

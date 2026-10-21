@@ -14,7 +14,7 @@
 |---|---|---|---|---|
 | T-001 | 따라 만들 게임 확정, requirements.md 2~3장 작성 | AI | 완료 | - |
 | T-002 | 원작 수치 대조, design.md 3~5장 작성, 작업 쪼개기 | AI | 완료 | T-001 |
-| T-003 | 프로젝트 골격: Vite + TypeScript + Vitest + 갈무리, 빈 테이블 화면 | AI | 대기 | T-002 |
+| T-003 | 프로젝트 골격: Vite + TypeScript + Vitest + 갈무리, 빈 테이블 화면 | AI | 완료 | T-002 |
 | T-004 | GitHub 저장소 만들기, Vercel 연결, README에 배포 주소 기입 | 사람 + AI | 대기 | T-003 |
 
 ### 게임 규칙 (src/game, 화면 없음, 테스트 필수)
@@ -49,7 +49,7 @@ requirements.md 3.2의 F10~F18. 하나를 시작할 때 아래 양식으로 상�
 
 ### T-003 프로젝트 골격
 
-- 할 일: Vite(vanilla-ts) 설정, Vitest, `npm run dev / build / test / typecheck / art` 스크립트, design.md 2.2의 빈 폴더와 styles/ 4개 파일, 갈무리 글꼴 연결, 펠트 바탕에 "발라트로" 제목과 하단 출처 문구만 있는 화면
+- 할 일: Vite(vanilla-ts) 설정, Vitest, `npm run dev / build / test / typecheck / art` 스크립트, design.md 2.2의 빈 폴더와 styles/ 파일, 갈무리 글꼴 연결, 펠트 바탕에 "발라트로" 제목과 하단 출처 문구만 있는 화면
 - 완료 기준: `npm run build`와 `npm test`가 통과한다. 빌드 결과 `dist/`를 열면 빈 테이블이 보인다
 - 건드리는 파일: package.json, tsconfig.json, vite.config.ts, index.html, src/main.ts, src/styles/*
 - 테스트 방법: `npm run build`, `npm test`

@@ -1,0 +1,36 @@
+/* 색과 글꼴은 여기서만 정한다. 다른 CSS 파일은 변수만 쓴다. (design.md 5.4) */
+:root {
+  color-scheme: dark;
+
+  --felt: #2c5a4d;
+  --felt-deep: #1f443a;
+  --panel: #1b2326;
+  --panel-raised: #232e31;
+  --panel-line: #33413f;
+  --ink: #efe7d6;
+  --muted: #a7b6ae;
+  --card: #f3ebdb;
+  --card-edge: #c7b99d;
+  --suit-red: #c23b2e;
+  --suit-black: #24262c;
+  --chips: #2f7fd0;
+  --mult: #d6452f;
+  --money: #e1b03f;
+  --danger: #d6452f;
+
+  /* 갈무리는 정해진 크기의 배수에서 가장 선명하다. Galmuri14는 15px, Galmuri11은 12px 기준. */
+  --font-body: "Galmuri14", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  --font-label: "Galmuri11", "Malgun Gothic", sans-serif;
+  --size-body: 15px;
+  --size-small: 12px;
+  --size-big: 24px;
+  --size-huge: 36px;
+
+  --gap-1: 4px;
+  --gap-2: 8px;
+  --gap-3: 12px;
+  --gap-4: 16px;
+  --gap-6: 24px;
+  --radius: 6px;
+  --lift: 0 3px 0 rgba(0, 0, 0, 0.35);
+}
