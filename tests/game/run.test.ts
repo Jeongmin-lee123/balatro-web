@@ -17,7 +17,7 @@ function run(state: RunState, ...actions: Action[]): RunState {
 const select = (...cardIds: string[]): Action[] => cardIds.map((cardId) => ({ type: "toggle_card", cardId }));
 
 describe("newRun", () => {
-  it("안테 1 스몰 블라인드, 손패 8장, $4로 시작한다", () => {
+  it("앤티 1 스몰 블라인드, 손패 8장, $4로 시작한다", () => {
     const state = newRun(1);
     expect(state).toMatchObject({ phase: "round", ante: 1, blindIndex: 0, money: RULES.startingMoney });
     expect(state.round.hand).toHaveLength(RULES.handSize);
@@ -82,7 +82,7 @@ describe("플레이와 버리기", () => {
     expect(run(state, ...select("hearts-2"), { type: "play" }).phase).toBe("lost");
   });
 
-  it("안테 8 보스를 넘기면 정산 없이 승리", () => {
+  it("앤티 8 보스를 넘기면 정산 없이 승리", () => {
     const base = { ...newRun(1), ante: 8, blindIndex: 2 as const };
     const state = withHand(base, "Ah Kh Qh Jh Th 2c 3c 4c", { score: currentTarget(base) - 1 });
     expect(run(state, ...select("hearts-14"), { type: "play" }).phase).toBe("won");
@@ -144,7 +144,7 @@ describe("정산과 상점", () => {
     expect(moved.jokers.map((j) => j.uid)).toEqual(["c", "a", "b"]);
   });
 
-  it("다음 라운드는 빅 블라인드, 보스 다음은 다음 안테 스몰", () => {
+  it("다음 라운드는 빅 블라인드, 보스 다음은 다음 앤티 스몰", () => {
     const next = apply(inShop(0), { type: "next_round" });
     expect(next).toMatchObject({ phase: "round", ante: 1, blindIndex: 1, shop: null });
     expect(next.round).toMatchObject({ score: 0, handsLeft: RULES.hands, discardsLeft: RULES.discards });
@@ -200,7 +200,7 @@ describe("한 판 전체", () => {
     expect(autoPlay(2026).final).toEqual(first.final);
   });
 
-  it("자동 플레이는 적어도 안테 2까지 간다", () => {
+  it("자동 플레이는 적어도 앤티 2까지 간다", () => {
     expect(autoPlay(2026).final.ante).toBeGreaterThanOrEqual(2);
   });
 });

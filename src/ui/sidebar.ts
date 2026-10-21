@@ -54,6 +54,6 @@ export function renderSidebar(state: RunState): string {
           : ""
       }
       <div class="counter counter--money"><dt>돈</dt><dd>$${state.money}</dd></div>
-      <div class="counter counter--ante"><dt>안테</dt><dd>${state.ante}<small>/${ANTE_COUNT}</small></dd></div>
+      <div class="counter counter--ante"><dt>앤티</dt><dd>${state.ante}<small>/${ANTE_COUNT}</small></dd></div>
     </dl>`;
 }

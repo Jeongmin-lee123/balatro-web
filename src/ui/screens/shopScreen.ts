@@ -40,6 +40,6 @@ export function renderShopScreen(state: RunState): string {
         })}
         ${button({ action: { type: "next_round" }, label: "다음 라운드", className: "btn btn--play", key: "next-round" })}
       </div>
-      <p class="shop__next">다음: 안테 ${next.ante} ${esc(blindName(next.blindIndex))}, 목표 ${targetScore(next.ante, next.blindIndex).toLocaleString("ko-KR")}점</p>
+      <p class="shop__next">다음: 앤티 ${next.ante} ${esc(blindName(next.blindIndex))}, 목표 ${targetScore(next.ante, next.blindIndex).toLocaleString("ko-KR")}점</p>
     </section>`;
 }

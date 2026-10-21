@@ -82,7 +82,7 @@ requirements.md 3.2의 F10~F18. 하나를 시작할 때 아래 양식으로 상�
 ### T-008 목표 점수와 정산
 
 - 할 일: targetScore, blindReward, cashOutLines, interest
-- 완료 기준: 안테 1 빅 = 450, 안테 8 보스 = 100000, 안테 8 보스 보상 $8. 이자는 $24에서 $4, $25 이상에서 $5. 정산 = 보상 + 남은 핸드 x $1 + 이자
+- 완료 기준: 앤티 1 빅 = 450, 앤티 8 보스 = 100000, 앤티 8 보스 보상 $8. 이자는 $24에서 $4, $25 이상에서 $5. 정산 = 보상 + 남은 핸드 x $1 + 이자
 - 테스트 방법: tests/game/blinds.test.ts, economy.test.ts
 
 ### T-009 상점
@@ -93,7 +93,7 @@ requirements.md 3.2의 F10~F18. 하나를 시작할 때 아래 양식으로 상�
 
 ### T-010 판 진행
 
-- 할 일: newRun, apply의 모든 Action. 라운드 시작 시 덱 전체를 새로 섞어 8장 배분. 목표 달성 즉시 정산으로, 핸드 0이면 패배, 안테 8 보스 통과 시 승리
+- 할 일: newRun, apply의 모든 Action. 라운드 시작 시 덱 전체를 새로 섞어 8장 배분. 목표 달성 즉시 정산으로, 핸드 0이면 패배, 앤티 8 보스 통과 시 승리
 - 완료 기준: 정해진 시드와 행동 목록으로 한 판을 끝까지 돌리는 테스트가 통과한다. 허용되지 않는 행동은 상태를 그대로 돌려준다
 - 테스트 방법: tests/game/run.test.ts
 
@@ -109,7 +109,7 @@ requirements.md 3.2의 F10~F18. 하나를 시작할 때 아래 양식으로 상�
 ### T-012 라운드 화면
 
 - 할 일: `main.ts`에서 `newRun(Date.now())`로 시작하고, 행동이 오면 `apply` 후 `render` 다시 호출. `ui/render.ts`가 phase별 화면을 고른다. 이번 작업은 round 화면만. `ui/dom.ts`, `ui/sidebar.ts`, `ui/screens/roundScreen.ts`
-- 사이드바: 블라인드 이름, 목표 점수(`currentTarget`), 현재 점수, 마지막 플레이의 칩 x 배수, 핸드/버리기 남은 횟수, 돈, 안테 n/8
+- 사이드바: 블라인드 이름, 목표 점수(`currentTarget`), 현재 점수, 마지막 플레이의 칩 x 배수, 핸드/버리기 남은 횟수, 돈, 앤티 n/8
 - 놀이판: 조커 줄(그림은 T-015 전까지 이름만 적힌 빈 카드), 손패 8장(고른 카드는 위로 18px), 버튼 [플레이] [숫자순] [무늬순] [버리기], 플레이 직후 `lastScore.steps`를 한 줄씩 보여 주는 계산 과정 패널
 - 버튼 비활성화: 고른 카드 0장이면 플레이와 버리기, 버리기 0번이면 버리기
 - 배치와 색은 design.md 5.1, 5.4, 문구는 5.6을 따른다. 색은 tokens.css 변수만 쓴다
@@ -124,8 +124,8 @@ requirements.md 3.2의 F10~F18. 하나를 시작할 때 아래 양식으로 상�
 
 ### T-014 끝 화면과 기록
 
-- 할 일: `screens/endScreen.ts`(won, lost), `storage/records.ts`(최고 도달 안테, 최고 한 손 점수. localStorage 읽기/쓰기는 try/catch로 감싼다)
-- 문구: design.md 5.6. 패배 화면에는 도달 안테와 블라인드, 이번 판 최고 한 손, 역대 기록을 보여 준다
+- 할 일: `screens/endScreen.ts`(won, lost), `storage/records.ts`(최고 도달 앤티, 최고 한 손 점수. localStorage 읽기/쓰기는 try/catch로 감싼다)
+- 문구: design.md 5.6. 패배 화면에는 도달 앤티와 블라인드, 이번 판 최고 한 손, 역대 기록을 보여 준다
 - 완료 기준: 새로고침해도 역대 기록이 남는다. [새 게임]이 동작한다
 
 ### T-017 마무리 점검

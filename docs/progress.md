@@ -87,7 +87,7 @@ npm run build      배포용 빌드 (dist/)
 | 2026-10-21 | T-007 | Claude | jokers.ts(효과 6종), scoring.ts. 테스트 공용 도구 tests/game/cards.ts로 중복 제거 |
 | 2026-10-21 | T-008 | Claude | blinds.ts, economy.ts. 이자는 보상 받기 전 금액으로 계산 |
 | 2026-10-21 | T-009 | Claude | shop.ts. 진열은 data/jokers.json에서 중복 허용 무작위 |
-| 2026-10-21 | T-010 | Claude | run.ts. 안테 8 보스 통과는 정산 없이 바로 승리. 자동 플레이 테스트로 한 판 재현성 확인. 테스트 합계 82개 |
+| 2026-10-21 | T-010 | Claude | run.ts. 앤티 8 보스 통과는 정산 없이 바로 승리. 자동 플레이 테스트로 한 판 재현성 확인. 테스트 합계 82개 |
 | 2026-10-21 | 인계 | Claude | 얼굴 카드 도트를 data/faces.json으로, 견본 페이지를 art/sample/로 보관. T-011~T-014, T-017 작업 상세 작성. 이 문서를 인계용으로 정리 |
 | 2026-10-21 | T-004 | Claude | Vercel 프로젝트 balatro-web 생성, CLI로 프로덕션 배포. 지금은 빈 테이블 화면만 보인다 |
 | 2026-10-21 | T-004 | Claude | GitHub 공개 저장소 생성과 push. vercel git connect는 실패(Vercel GitHub 앱 미설치로 추정). README에 참여 방법 추가 |
@@ -98,3 +98,4 @@ npm run build      배포용 빌드 (dist/)
 | 2026-10-21 | T-014 | Claude | 끝 화면, storage/records.ts. 패배 후 역대 기록이 새로고침 뒤에도 남는 것 확인 |
 | 2026-10-21 | T-015 | Claude | 배경 지우기를 포기하고 2:3 그대로 256 x 384, 16색 변환 (design.md D-009) |
 | 2026-10-21 | T-017 | Claude | 375px 폭에서 가로 스크롤 없음, 키보드 초점이 다시 그린 뒤에도 유지됨을 확인. 휴대폰 사이드바의 칩 x 배수 한 줄로 정리. 개선 후보를 다음 할 일에 기록 |
+| 2026-10-21 | 용어 | Claude | 사용자 요청으로 '안테'를 '앤티'로 통일 (화면, 코드, 테스트, 문서) |
