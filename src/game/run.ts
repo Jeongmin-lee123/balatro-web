@@ -137,12 +137,25 @@ function skipBlind(state: RunState): RunState {
   return enterBlind(rewarded, next.ante, next.blindIndex, false);
 }
 
-/** 고른 카드를 손에서 빼고 덱에서 채운다. 빠진 카드는 손패 순서대로 돌려준다 */
-function takeSelected(round: RoundState): { taken: RoundState["hand"]; round: RoundState } {
+/**
+ * 고른 카드를 손에서 빼고 덱에서 채운다. 빠진 카드는 손패 순서대로 돌려준다.
+ * extraDiscards만큼 남은 손패에서 무작위로 더 버린 뒤 채운다 (갈고리 보스).
+ */
+function takeSelected(
+  round: RoundState,
+  rngState: number,
+  extraDiscards = 0,
+): { taken: RoundState["hand"]; round: RoundState; rngState: number } {
   const taken = round.hand.filter((card) => round.selected.includes(card.id));
-  const kept = round.hand.filter((card) => !round.selected.includes(card.id));
-  const { drawn, rest } = drawCards(round.drawPile, taken.length);
-  return { taken, round: { ...round, hand: sortHand([...kept, ...drawn], round.sortBy), drawPile: rest, selected: [] } };
+  const held = round.hand.filter((card) => !round.selected.includes(card.id));
+  const [order, nextRng] = extraDiscards > 0 ? shuffle(held, rngState) : [held, rngState];
+  const kept = order.slice(extraDiscards);
+  const { drawn, rest } = drawCards(round.drawPile, round.hand.length - kept.length);
+  return {
+    taken,
+    rngState: nextRng,
+    round: { ...round, hand: sortHand([...kept, ...drawn], round.sortBy), drawPile: rest, selected: [] },
+  };
 }
 
 function toggleCard(state: RunState, cardId: string): RunState {
@@ -175,7 +188,8 @@ function play(state: RunState): RunState {
   if (!canPlay(state)) return state;
 
   const effect = activeBoss(state)?.effect ?? null;
-  const { taken, round } = takeSelected(state.round);
+  const hook = effect?.kind === "discard_random" ? effect.count : 0;
+  const { taken, round, rngState } = takeSelected(state.round, state.rngState, hook);
   const handLevels = effect?.kind === "lower_level" ? lowerPlayedLevel(state.handLevels, taken) : state.handLevels;
   const result = scoreHand(taken, jokerDefs(state.jokers), handLevels, {
     isDebuffed: effect ? (card) => isDebuffed(effect, card) : undefined,
@@ -184,7 +198,7 @@ function play(state: RunState): RunState {
   const score = state.round.score + result.total;
   const handsLeft = state.round.handsLeft - 1;
   const stats = { ...state.stats, bestHand: Math.max(state.stats.bestHand, result.total), handsPlayed: state.stats.handsPlayed + 1 };
-  const next: RunState = { ...state, stats, handLevels, round: { ...round, score, handsLeft, lastScore: result } };
+  const next: RunState = { ...state, rngState, stats, handLevels, round: { ...round, score, handsLeft, lastScore: result } };
 
   if (score >= currentTarget(state)) {
     if (state.ante === ANTE_COUNT && state.blindIndex === 2) return { ...next, phase: "won" };
@@ -195,7 +209,7 @@ function play(state: RunState): RunState {
 
 function discard(state: RunState): RunState {
   if (state.round.selected.length === 0 || state.round.discardsLeft === 0) return state;
-  const { round } = takeSelected(state.round);
+  const { round } = takeSelected(state.round, state.rngState);
   return { ...state, round: { ...round, discardsLeft: state.round.discardsLeft - 1 } };
 }
 

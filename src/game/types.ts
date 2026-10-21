@@ -69,6 +69,7 @@ export type BossEffect =
   | { kind: "discards"; count: number }
   | { kind: "halve_base" }
   | { kind: "lower_level" }
+  | { kind: "discard_random"; count: number }
   | { kind: "none" };
 
 export interface BossDef {

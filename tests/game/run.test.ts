@@ -231,6 +231,17 @@ describe("보스 블라인드", () => {
     expect(played.round.lastScore).toMatchObject({ chips: 30, mult: 2 });
   });
 
+  it("갈고리는 낼 때마다 남은 손패 2장을 버리고, 손패는 8장으로 다시 채운다", () => {
+    const state = withHand(atBoss("hook"), "Kh Kc 2s 3d 5c 7h 9s Jd");
+    const held = ["spades-2", "diamonds-3", "clubs-5", "hearts-7", "spades-9", "diamonds-11"];
+    const played = run(state, ...select("hearts-13", "clubs-13"), { type: "play" });
+    const remaining = held.filter((id) => played.round.hand.some((card) => card.id === id));
+    expect(remaining).toHaveLength(held.length - 2);
+    expect(played.round.hand).toHaveLength(RULES.handSize);
+    expect(played.round.drawPile).toHaveLength(state.round.drawPile.length - 4);
+    expect(run(state, ...select("hearts-13", "clubs-13"), { type: "play" }).round.hand).toEqual(played.round.hand);
+  });
+
   it("머리는 하트를 무효로 만든다", () => {
     const state = withHand(atBoss("head"), "Kh Kc 2s 3d 5c 7h 9s Jd");
     const played = run(state, ...select("hearts-13", "clubs-13"), { type: "play" });

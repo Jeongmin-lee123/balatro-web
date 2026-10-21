@@ -20,5 +20,7 @@
   { "id": "arm", "name": "팔", "description": "낸 족보의 레벨이 1 내려간다", "minAnte": 2, "multiplier": 2,
     "effect": { "kind": "lower_level" } },
   { "id": "plant", "name": "화초", "description": "J, Q, K 카드가 모두 무효", "minAnte": 4, "multiplier": 2,
-    "effect": { "kind": "debuff_face" } }
+    "effect": { "kind": "debuff_face" } },
+  { "id": "hook", "name": "갈고리", "description": "낼 때마다 남은 손패 2장을 무작위로 버린다", "minAnte": 1, "multiplier": 2,
+    "effect": { "kind": "discard_random", "count": 2 } }
 ]
