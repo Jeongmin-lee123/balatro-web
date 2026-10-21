@@ -1,0 +1,24 @@
+import { ANTE_COUNT, BLINDS } from "./rules";
+import type { BlindIndex } from "./types";
+
+function blindInfo(blindIndex: BlindIndex) {
+  const info = BLINDS.blinds[blindIndex];
+  if (!info) throw new Error(`없는 블라인드: ${blindIndex}`);
+  return info;
+}
+
+export function blindName(blindIndex: BlindIndex): string {
+  return blindInfo(blindIndex).name;
+}
+
+export function targetScore(ante: number, blindIndex: BlindIndex): number {
+  const base = BLINDS.anteBase[ante - 1];
+  if (base === undefined) throw new Error(`없는 안테: ${ante}`);
+  return Math.floor(base * blindInfo(blindIndex).multiplier);
+}
+
+/** 마지막 안테의 보스는 보상이 따로 정해져 있다 */
+export function blindReward(ante: number, blindIndex: BlindIndex): number {
+  if (blindIndex === 2 && ante === ANTE_COUNT) return BLINDS.finalBossReward;
+  return blindInfo(blindIndex).reward;
+}

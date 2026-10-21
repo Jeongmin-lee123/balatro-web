@@ -171,7 +171,7 @@ type Action =
 | scoring.ts | `scoreHand(cards, jokerDefs): ScoreResult`, `cardChips(card)`, `handName(hand)` |
 | jokers.ts | `onCardScored(effect, card): JokerGain \| null`, `onIndependent(effect, ctx): JokerGain \| null` |
 | blinds.ts | `targetScore(ante, blindIndex): number`, `blindReward(ante, blindIndex): number`, `blindName(blindIndex): string` |
-| economy.ts | `cashOutLines(state): { lines, total }`, `interest(money): number` |
+| economy.ts | `cashOutLines({ ante, blindIndex, handsLeft, money }): CashOut`, `interest(money): number` |
 | shop.ts | `rollOffers(rngState, count): [defIds, nextState]`, `sellValue(paid): number` |
 | run.ts | `newRun(seed): RunState`, `apply(state, action): RunState` |
 | records.ts | `loadRecords(): Records`, `saveRun(state): Records` |
