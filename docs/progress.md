@@ -35,3 +35,5 @@
 | 2026-10-21 | T-016 | 사용자 | 조커 그림 10장 모두 완료 |
 | 2026-10-21 | T-006 | Claude | handEval.ts. 위키 확인: 포카드는 투 페어를 포함하지 않음. 테스트 22개 |
 | 2026-10-21 | T-007 | Claude | jokers.ts(효과 6종), scoring.ts. 테스트 공용 도구 tests/game/cards.ts로 중복 제거 |
+| 2026-10-21 | T-008 | Claude | blinds.ts, economy.ts. 이자는 보상 받기 전 금액으로 계산 |
+| 2026-10-21 | T-009 | Claude | shop.ts. 진열은 data/jokers.json에서 중복 허용 무작위 |
