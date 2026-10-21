@@ -2,6 +2,7 @@ import { blindName } from "../game/blinds";
 import { ANTE_COUNT } from "../game/rules";
 import { activeBoss, currentTarget } from "../game/run";
 import { handName } from "../game/scoring";
+import { tagDef } from "../game/tags";
 import type { RunState } from "../game/types";
 import { button, esc } from "./dom";
 
@@ -12,6 +13,9 @@ function fmt(value: number): string {
 }
 
 function blindBlock(state: RunState): string {
+  if (state.phase === "blind_select") {
+    return `<div class="blind blind--shop"><span class="blind__name">블라인드 선택</span><span class="blind__sub">선택하거나, 스몰과 빅은 건너뛰고 태그를 받는다</span></div>`;
+  }
   if (state.phase === "shop") {
     return `<div class="blind blind--shop"><span class="blind__name">상점</span><span class="blind__sub">다음 블라인드 전에 조커와 행성을 고른다</span></div>`;
   }
@@ -59,7 +63,15 @@ export function renderSidebar(state: RunState): string {
       <div class="counter counter--money"><dt>돈</dt><dd>$${state.money}</dd></div>
       <div class="counter counter--ante"><dt>앤티</dt><dd>${state.ante}<small>/${ANTE_COUNT}</small></dd></div>
     </dl>
+    ${heldTags(state)}
     ${state.phase === "won" || state.phase === "lost" ? "" : restartMenu()}`;
+}
+
+/** 받아 두고 아직 발동하지 않은 태그 */
+function heldTags(state: RunState): string {
+  if (state.tags.length === 0) return "";
+  const items = state.tags.map((id) => tagDef(id)).map((tag) => `<li title="${esc(tag.description)}">${esc(tag.name)}</li>`).join("");
+  return `<div class="held-tags"><span>보관 중인 태그</span><ul>${items}</ul></div>`;
 }
 
 /** 진행 중인 판은 자동 저장되므로, 새로 시작할 때는 한 번 더 확인한다 */

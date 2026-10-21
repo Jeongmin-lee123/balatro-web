@@ -659,3 +659,127 @@
     grid-column: 1 / -1;
   }
 }
+
+/* 블라인드 선택 */
+.blind-select__row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--gap-3);
+}
+
+.choice {
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: var(--gap-2);
+  background: var(--felt-deep);
+  border-radius: var(--radius);
+  padding: var(--gap-3);
+  text-align: center;
+}
+
+.choice.is-other {
+  opacity: 0.55;
+}
+
+.choice.is-current {
+  outline: 2px solid var(--select);
+}
+
+.choice p {
+  margin: 0;
+}
+
+.choice__name {
+  margin: 0;
+  width: 100%;
+  border-radius: 4px;
+  padding: var(--gap-1);
+  font-family: var(--font-label);
+  font-size: var(--size-body);
+}
+
+.choice__name.blind--small {
+  background: var(--blind-small);
+}
+
+.choice__name.blind--big {
+  background: var(--blind-big);
+}
+
+.choice__name.blind--boss {
+  background: var(--blind-boss);
+}
+
+.choice__target {
+  display: grid;
+  font-family: var(--font-label);
+  font-size: var(--size-big);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.choice__target small {
+  font-size: var(--size-small);
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.choice__reward,
+.choice__status {
+  font-size: var(--size-small);
+  color: var(--muted);
+}
+
+.choice__detail {
+  font-size: var(--size-small);
+  line-height: 1.5;
+}
+
+.choice__actions {
+  display: grid;
+  gap: var(--gap-2);
+}
+
+/* 보관 중인 태그 */
+.held-tags {
+  font-size: var(--size-small);
+  color: var(--muted);
+}
+
+.held-tags ul {
+  margin: var(--gap-1) 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-1);
+}
+
+.held-tags li {
+  background: var(--panel-raised);
+  color: var(--ink);
+  border-radius: 4px;
+  padding: 2px var(--gap-2);
+}
+
+@media (max-width: 599px) {
+  .blind-select__row {
+    gap: var(--gap-1);
+  }
+
+  .choice {
+    padding: var(--gap-2) var(--gap-1);
+  }
+
+  .choice__target {
+    font-size: var(--size-body);
+  }
+}
+
+@media (max-width: 899px) {
+  .table__side .held-tags {
+    grid-column: 1 / -1;
+  }
+}

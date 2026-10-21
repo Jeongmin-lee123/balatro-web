@@ -4,9 +4,15 @@ import { JOKERS, RULES } from "../../src/game/rules";
 import type { Action, Card, RunState, ShopOffer } from "../../src/game/types";
 import { cards } from "./cards";
 
-/** 손패를 원하는 카드로 바꾼 상태 */
+/** 손패를 원하는 카드로 바꾸고, 블라인드 선택 화면이면 라운드로 들어간 상태 */
 function withHand(state: RunState, text: string, overrides: Partial<RunState["round"]> = {}): RunState {
-  return { ...state, round: { ...state.round, hand: cards(text), selected: [], ...overrides } };
+  const phase = state.phase === "blind_select" ? "round" : state.phase;
+  return { ...state, phase, round: { ...state.round, hand: cards(text), selected: [], ...overrides } };
+}
+
+/** 새 판에서 스몰 블라인드를 선택해 라운드에 들어간 상태 */
+function started(seed: number): RunState {
+  return apply(newRun(seed), { type: "select_blind" });
 }
 
 function run(state: RunState, ...actions: Action[]): RunState {
@@ -16,9 +22,10 @@ function run(state: RunState, ...actions: Action[]): RunState {
 const select = (...cardIds: string[]): Action[] => cardIds.map((cardId) => ({ type: "toggle_card", cardId }));
 
 describe("newRun", () => {
-  it("앤티 1 스몰 블라인드, 손패 8장, $4로 시작한다", () => {
+  it("앤티 1 스몰 블라인드 선택 화면, 손패 8장, $4로 시작한다", () => {
     const state = newRun(1);
-    expect(state).toMatchObject({ phase: "round", ante: 1, blindIndex: 0, money: RULES.startingMoney });
+    expect(state).toMatchObject({ phase: "blind_select", ante: 1, blindIndex: 0, money: RULES.startingMoney });
+    expect(state.blindTags).toHaveLength(2);
     expect(state.round.hand).toHaveLength(RULES.handSize);
     expect(state.round.drawPile).toHaveLength(52 - RULES.handSize);
   });
@@ -39,20 +46,20 @@ describe("카드 고르기", () => {
   });
 
   it("손에 없는 카드는 무시", () => {
-    const state = newRun(1);
+    const state = started(1);
     expect(apply(state, { type: "toggle_card", cardId: "nothing" })).toBe(state);
   });
 });
 
 describe("플레이와 버리기", () => {
   it("아무것도 고르지 않으면 상태 그대로", () => {
-    const state = newRun(1);
+    const state = started(1);
     expect(apply(state, { type: "play" })).toBe(state);
     expect(apply(state, { type: "discard" })).toBe(state);
   });
 
   it("버리기는 횟수를 줄이고 손패를 8장으로 채운다", () => {
-    const state = newRun(1);
+    const state = started(1);
     const first = state.round.hand[0] as Card;
     const after = run(state, ...select(first.id), { type: "discard" });
     expect(after.round.discardsLeft).toBe(RULES.discards - 1);
@@ -65,7 +72,7 @@ describe("플레이와 버리기", () => {
     const after = run(state, ...select("hearts-13", "clubs-13"), { type: "play" });
     expect(after.round).toMatchObject({ score: 60, handsLeft: RULES.hands - 1 });
     expect(after.round.lastScore?.hand.type).toBe("pair");
-    expect(after.stats).toEqual({ bestHand: 60, handsPlayed: 1 });
+    expect(after.stats).toMatchObject({ bestHand: 60, handsPlayed: 1 });
     expect(after.phase).toBe("round");
   });
 
@@ -174,7 +181,7 @@ describe("정산과 상점", () => {
 
   it("다음 라운드는 빅 블라인드, 보스 다음은 다음 앤티 스몰", () => {
     const next = apply(inShop(0), { type: "next_round" });
-    expect(next).toMatchObject({ phase: "round", ante: 1, blindIndex: 1, shop: null });
+    expect(next).toMatchObject({ phase: "blind_select", ante: 1, blindIndex: 1, shop: null });
     expect(next.round).toMatchObject({ score: 0, handsLeft: RULES.hands, discardsLeft: RULES.discards });
     const afterBoss = apply({ ...inShop(0), blindIndex: 2 }, { type: "next_round" });
     expect(afterBoss).toMatchObject({ ante: 2, blindIndex: 0 });
@@ -182,10 +189,10 @@ describe("정산과 상점", () => {
 });
 
 describe("보스 블라인드", () => {
-  /** 빅 블라인드 뒤 상점에서 다음 라운드를 눌러, 정한 보스의 라운드를 시작한 상태 */
+  /** 빅 블라인드 뒤 상점에서 다음 라운드를 누르고 보스를 선택해, 정한 보스의 라운드를 시작한 상태 */
   function atBoss(boss: string, ante = 2): RunState {
     const shop: RunState = { ...newRun(5), phase: "shop", ante, blindIndex: 1, boss, shop: { offers: [], rerollCost: 5 } };
-    return apply(shop, { type: "next_round" });
+    return run(shop, { type: "next_round" }, { type: "select_blind" });
   }
 
   it("같은 앤티 안에서는 보스가 그대로, 앤티가 바뀌면 새로 고른다", () => {
@@ -231,6 +238,80 @@ describe("보스 블라인드", () => {
   });
 });
 
+describe("블라인드 선택과 태그", () => {
+  /** 스몰, 빅 블라인드의 태그를 정해 둔 새 판 */
+  function withTags(small: string, big: string, extra: Partial<RunState> = {}): RunState {
+    return { ...newRun(4), blindTags: [small, big], ...extra };
+  }
+
+  it("선택하면 라운드로, 손패는 선택 화면에서 나눠 둔 그대로", () => {
+    const state = newRun(4);
+    const selected = apply(state, { type: "select_blind" });
+    expect(selected.phase).toBe("round");
+    expect(selected.round.hand).toEqual(state.round.hand);
+  });
+
+  it("건너뛰면 그 블라인드의 태그를 받고 다음 블라인드 선택으로", () => {
+    const skipped = apply(withTags("coupon", "d6"), { type: "skip_blind" });
+    expect(skipped).toMatchObject({ phase: "blind_select", blindIndex: 1, tags: ["coupon"] });
+    expect(skipped.stats.skips).toBe(1);
+  });
+
+  it("보스 블라인드는 건너뛸 수 없다", () => {
+    const boss = { ...newRun(4), blindIndex: 2 as const };
+    expect(apply(boss, { type: "skip_blind" })).toBe(boss);
+  });
+
+  it("경제 태그: 돈 두 배, 최대 +$40", () => {
+    expect(apply(withTags("economy", "d6", { money: 7 }), { type: "skip_blind" }).money).toBe(14);
+    expect(apply(withTags("economy", "d6", { money: 100 }), { type: "skip_blind" }).money).toBe(140);
+  });
+
+  it("속도 태그: 이번 건너뛰기까지 포함해 건너뛴 블라인드마다 $5", () => {
+    const twice = run(withTags("coupon", "speed", { money: 0 }), { type: "skip_blind" }, { type: "skip_blind" });
+    expect(twice.money).toBe(10);
+  });
+
+  it("손재주와 쓰레기 태그: 낸 핸드, 쓰지 않은 버리기마다 $1", () => {
+    const stats = { bestHand: 0, handsPlayed: 6, skips: 0, unusedDiscards: 4 };
+    expect(apply(withTags("handy", "d6", { money: 0, stats }), { type: "skip_blind" }).money).toBe(6);
+    expect(apply(withTags("garbage", "d6", { money: 0, stats }), { type: "skip_blind" }).money).toBe(4);
+  });
+
+  it("저글링 태그: 다음에 선택한 라운드의 손패 +3장, 쓰고 나면 사라진다", () => {
+    const skipped = apply(withTags("juggle", "d6"), { type: "skip_blind" });
+    const selected = apply(skipped, { type: "select_blind" });
+    expect(selected.round.hand).toHaveLength(RULES.handSize + 3);
+    expect(selected.tags).toEqual([]);
+  });
+
+  it("쿠폰 태그는 다음 상점 처음 진열을 무료로, 주사위 태그는 다시 굴리기를 $0부터", () => {
+    const state = withHand({ ...newRun(4), tags: ["coupon", "d6"] }, "Ah Kh Qh Jh Th 2c 3c 4c", { score: 299 });
+    const shop = run(state, ...select("hearts-14"), { type: "play" }, { type: "collect" });
+    expect(shop.shop?.offers.every((offer) => offer?.price === 0)).toBe(true);
+    expect(shop.shop?.rerollCost).toBe(0);
+    expect(shop.tags).toEqual([]);
+  });
+
+  it("투자 태그는 보스를 이긴 정산에 $25를 더하고, 보스가 아니면 그대로 보관한다", () => {
+    const hand = "Ah Kh Qh Jh Th 2c 3c 4c";
+    const small = withHand({ ...newRun(4), tags: ["investment"] }, hand, { score: 299 });
+    const notBoss = run(small, ...select("hearts-14"), { type: "play" });
+    expect(notBoss.tags).toEqual(["investment"]);
+
+    const bossBase = { ...newRun(4), blindIndex: 2 as const, boss: "club", tags: ["investment"] };
+    const boss = withHand(bossBase, hand, { score: currentTarget(bossBase) - 1 });
+    const won = run(boss, ...select("hearts-14"), { type: "play" });
+    expect(won.cashOut?.lines.at(-1)).toEqual({ label: "투자 태그", amount: 25 });
+    expect(won.tags).toEqual([]);
+  });
+
+  it("라운드를 이기면 남은 버리기를 쓰레기 태그용으로 쌓는다", () => {
+    const state = withHand(newRun(4), "Ah Kh Qh Jh Th 2c 3c 4c", { score: 299, discardsLeft: 2 });
+    expect(run(state, ...select("hearts-14"), { type: "play" }).stats.unusedDiscards).toBe(2);
+  });
+});
+
 describe("apply", () => {
   it("맞지 않는 단계의 행동은 무시한다", () => {
     const state = newRun(1);
@@ -244,7 +325,6 @@ describe("apply", () => {
   });
 });
 
-/** 매번 가장 높은 점수의 조합을 내고, 살 수 있는 첫 조커를 사는 단순한 자동 플레이 */
 /** 가능한 조합을 실제 apply로 플레이해 보고 점수가 가장 높은 조합을 고른다. 보스 제약도 그대로 반영된다 */
 function bestSelection(state: RunState): string[] {
   const hand = state.round.hand;
@@ -264,7 +344,8 @@ function autoPlay(seed: number): { final: RunState; steps: number } {
   let steps = 0;
   while (state.phase !== "won" && state.phase !== "lost" && steps < 2000) {
     steps++;
-    if (state.phase === "round") state = run(state, ...select(...bestSelection(state)), { type: "play" });
+    if (state.phase === "blind_select") state = apply(state, { type: "select_blind" });
+    else if (state.phase === "round") state = run(state, ...select(...bestSelection(state)), { type: "play" });
     else if (state.phase === "cash_out") state = apply(state, { type: "collect" });
     else if (state.phase === "shop") state = run(state, { type: "buy", slot: 0 }, { type: "buy", slot: 1 }, { type: "next_round" });
   }

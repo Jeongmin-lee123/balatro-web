@@ -5,7 +5,8 @@ import rulesJson from "../../data/rules.json";
 import jokersJson from "../../data/jokers.json";
 import planetsJson from "../../data/planets.json";
 import bossesJson from "../../data/bosses.json";
-import type { BossDef, HandType, JokerDef, PlanetDef, ShopItemKind } from "./types";
+import tagsJson from "../../data/tags.json";
+import type { BossDef, HandType, JokerDef, PlanetDef, ShopItemKind, TagDef } from "./types";
 
 export interface HandInfo {
   name: string;
@@ -44,6 +45,11 @@ export const PLANET_IDS: string[] = planetList.map((planet) => planet.id);
 export const BOSS_LIST = bossesJson as BossDef[];
 
 export const BOSSES: Record<string, BossDef> = Object.fromEntries(BOSS_LIST.map((boss) => [boss.id, boss]));
+
+/** data/tags.json 순서 그대로 */
+export const TAG_LIST = tagsJson as TagDef[];
+
+export const TAGS: Record<string, TagDef> = Object.fromEntries(TAG_LIST.map((tag) => [tag.id, tag]));
 
 export const ANTE_COUNT = BLINDS.anteBase.length;
 

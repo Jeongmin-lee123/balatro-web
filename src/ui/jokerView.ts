@@ -44,7 +44,7 @@ function ownedFooter(joker: OwnedJoker, index: number, count: number, def: Joker
 }
 
 export function renderJokerRow(state: RunState, defs: readonly JokerDef[]): string {
-  const editable = state.phase === "round" || state.phase === "shop";
+  const editable = state.phase === "blind_select" || state.phase === "round" || state.phase === "shop";
   const cards = state.jokers
     .map((joker, i) => {
       const def = defs[i];

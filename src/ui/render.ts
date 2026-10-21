@@ -4,6 +4,7 @@ import type { RunState } from "../game/types";
 import type { Records } from "../storage/records";
 import { replaceKeepingFocus } from "./dom";
 import { renderJokerRow } from "./jokerView";
+import { renderBlindSelectScreen } from "./screens/blindSelectScreen";
 import { renderCashOutScreen } from "./screens/cashOutScreen";
 import { renderEndScreen } from "./screens/endScreen";
 import { renderRoundScreen } from "./screens/roundScreen";
@@ -12,6 +13,8 @@ import { renderSidebar } from "./sidebar";
 
 function mainArea(state: RunState, records: Records): string {
   switch (state.phase) {
+    case "blind_select":
+      return renderBlindSelectScreen(state);
     case "round":
       return renderRoundScreen(state);
     case "cash_out":

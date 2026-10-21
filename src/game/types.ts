@@ -82,6 +82,24 @@ export interface BossDef {
   effect: BossEffect;
 }
 
+export type TagEffect =
+  | { kind: "double_money"; max: number }
+  | { kind: "boss_bonus"; amount: number }
+  | { kind: "money_per_hand"; amount: number }
+  | { kind: "money_per_unused_discard"; amount: number }
+  | { kind: "money_per_skip"; amount: number }
+  | { kind: "free_shop" }
+  | { kind: "free_reroll" }
+  | { kind: "hand_size"; amount: number };
+
+export interface TagDef {
+  id: string;
+  name: string;
+  description: string;
+  minAnte: number;
+  effect: TagEffect;
+}
+
 /** 족보별 레벨. 처음은 모두 1 */
 export type HandLevels = Record<HandType, number>;
 
@@ -90,6 +108,8 @@ export type ShopItemKind = "joker" | "planet";
 export interface ShopOffer {
   kind: ShopItemKind;
   id: string;
+  /** 정가 대신 받는 가격 (쿠폰 태그면 0) */
+  price?: number;
 }
 
 export interface OwnedJoker {
@@ -115,7 +135,7 @@ export interface ScoreResult {
   steps: ScoreStep[];
 }
 
-export type Phase = "round" | "cash_out" | "shop" | "won" | "lost";
+export type Phase = "blind_select" | "round" | "cash_out" | "shop" | "won" | "lost";
 
 export type BlindIndex = 0 | 1 | 2;
 
@@ -149,6 +169,10 @@ export interface ShopState {
 export interface RunStats {
   bestHand: number;
   handsPlayed: number;
+  /** 건너뛴 블라인드 수 (속도 태그) */
+  skips: number;
+  /** 이긴 라운드마다 남은 버리기를 더한 값 (쓰레기 태그) */
+  unusedDiscards: number;
 }
 
 export interface RunState {
@@ -165,6 +189,10 @@ export interface RunState {
   boss: string;
   /** 이번 판에 나온 보스. 모두 한 번씩 나오기 전에는 같은 보스를 다시 고르지 않는다 */
   bossesSeen: string[];
+  /** 이번 앤티의 스몰, 빅 블라인드를 건너뛰면 받는 태그 id */
+  blindTags: string[];
+  /** 받아 두고 아직 발동하지 않은 태그 id. 받은 순서대로 */
+  tags: string[];
   /** 새 조커 uid를 만들 때 쓰는 번호 */
   nextUid: number;
   round: RoundState;
@@ -184,4 +212,6 @@ export type Action =
   | { type: "reroll" }
   | { type: "move_joker"; uid: string; to: number }
   | { type: "next_round" }
+  | { type: "select_blind" }
+  | { type: "skip_blind" }
   | { type: "new_run"; seed?: number };

@@ -30,6 +30,7 @@ export function rollOffers(rngState: number, count: number): [ShopOffer[], numbe
 }
 
 export function offerPrice(offer: ShopOffer): number {
+  if (offer.price !== undefined) return offer.price;
   const def = offer.kind === "joker" ? JOKERS[offer.id] : PLANETS[offer.id];
   if (!def) throw new Error(`없는 상품: ${offer.kind} ${offer.id}`);
   return def.price;

@@ -48,6 +48,7 @@ src/
 │  ├─ bosses.ts          보스 고르기, 무효 카드, 라운드 횟수 제한
 │  ├─ economy.ts         라운드 정산 (보상, 남은 핸드, 이자)
 │  ├─ shop.ts            진열, 구매, 리롤, 판매
+│  ├─ tags.ts            블라인드 태그 고르기, 즉시 지급 금액, 보관 태그 꺼내기
 │  └─ run.ts             한 판의 상태 전이. apply(state, action) -> state
 ├─ ui/
 │  ├─ render.ts          상태의 phase를 보고 알맞은 화면 함수를 부른다
@@ -58,6 +59,7 @@ src/
 │  ├─ planetView.ts      행성 카드 (색 하나로 만드는 도트 행성)
 │  ├─ sidebar.ts         블라인드, 점수, 핸드/버리기 횟수, 돈, 앤티
 │  └─ screens/
+│     ├─ blindSelectScreen.ts 블라인드 3개 중 선택 또는 건너뛰기
 │     ├─ roundScreen.ts  손패 선택, 플레이, 버리기, 정렬, 점수 계산 과정
 │     ├─ cashOutScreen.ts 라운드 정산
 │     ├─ shopScreen.ts   상점
@@ -78,6 +80,7 @@ data/
 ├─ jokers.json           조커 목록 (id, 이름, 가격, 설명, 효과 종류와 값)
 ├─ planets.json          행성 9종 (id, 이름, 올리는 족보, 가격, 그림 색)
 ├─ bosses.json           보스 11종 (id, 이름, 설명, 최소 앤티, 목표 배수, 효과)
+├─ tags.json             태그 8종 (id, 이름, 설명, 최소 앤티, 효과)
 └─ faces.json            J, Q, K 도트 격자와 팔레트
 public/
 └─ jokers/<id>.png       처리된 조커 그림 (256 x 384, 16색, 배경 그대로)
@@ -137,7 +140,7 @@ interface OwnedJoker { uid: string; defId: string; paid: number }  // 같은 조
 interface ScoreStep { source: string; chips: number; mult: number; note: string }  // 화면의 계산 과정 한 줄
 interface ScoreResult { hand: HandResult; chips: number; mult: number; total: number; steps: ScoreStep[] }
 
-type Phase = "round" | "cash_out" | "shop" | "won" | "lost";
+type Phase = "blind_select" | "round" | "cash_out" | "shop" | "won" | "lost";
 
 interface RunState {
   seed: number; rngState: number;
@@ -148,6 +151,7 @@ interface RunState {
   jokers: OwnedJoker[];
   handLevels: Record<HandType, number>;   // 족보 레벨, 처음 모두 1 (F10)
   boss: string; bossesSeen: string[];     // 이번 앤티 보스, 이번 판에 나온 보스 (F11)
+  blindTags: string[]; tags: string[];    // 스몰, 빅 건너뛰기 태그, 보관 중인 태그 (F13)
   round: { drawPile: Card[]; hand: Card[]; selected: string[]; handsLeft: number; discardsLeft: number;
            score: number; lastScore: ScoreResult | null; sortBy: "rank" | "suit" };
   cashOut: { lines: { label: string; amount: number }[]; total: number } | null;
@@ -185,6 +189,7 @@ type Action =
 | shop.ts | `rollOffers(rngState, count): [ShopOffer[], nextState]`, `offerPrice(offer)`, `sellValue(paid): number` |
 | run.ts | `newRun(seed): RunState`, `apply(state, action): RunState`, `currentTarget(state)`, `jokerDefs(owned)`, `canBuy(state, slot)`, `canPlay(state)`, `activeBoss(state)` |
 | records.ts | `loadRecords(): Records`, `saveRun(state): Records` |
+| tags.ts | `tagDef(id)`, `pickBlindTags(rngState, ante)`, `instantMoney(effect, state)`, `takeTags(held, kind)` |
 | savedRun.ts | `loadSavedRun(): RunState | null`, `storeRun(state)`, `clearSavedRun()`, `SAVE_VERSION` |
 
 ### 4.1 점수 계산 순서 (scoring.ts)
@@ -326,3 +331,4 @@ type Action =
 | D-010 | 2026-10-21 | 행성 카드는 사는 즉시 족보 레벨을 올린다. 소모품 칸은 만들지 않는다 | 원작은 소모품 칸에 보관했다가 쓰지만, 타로(F14)가 없는 지금은 보관할 이유가 없다. F14를 만들 때 소모품 칸을 함께 도입한다 |
 | D-011 | 2026-10-21 | 보스는 앤티가 바뀔 때 하나 고르고, 효과는 data/bosses.json의 종류 + 값으로 둔다. 훅과 앤티 8 전용 쇼다운 보스는 제외 | 조커와 같은 방식이라 보스 추가가 데이터 한 줄이 된다. 훅은 무작위 버림 처리가 따로 필요해 다음 작업으로 미룬다 |
 | D-012 | 2026-10-21 | 진행 중인 판은 행동마다 RunState를 통째로 저장하고, 형식이 바뀌면 SAVE_VERSION을 올려 이전 저장을 버린다 | RunState가 순수 데이터라 변환 코드가 필요 없다. 옛 저장을 새 모양으로 옮기는 코드는 지금 규모에서 유지 비용이 더 크다 |
+| D-013 | 2026-10-21 | 블라인드 선택 화면에 들어갈 때 손패를 미리 나눠 두고, 선택은 phase만 바꾼다. 저글링 태그만 선택 시점에 카드를 더 뽑는다 | round가 항상 유효한 값이라 화면과 저장이 단순해진다. 건너뛰기는 손패를 버리고 다음 블라인드의 손패를 새로 나눈다 |

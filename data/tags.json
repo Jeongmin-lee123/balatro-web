@@ -1,0 +1,18 @@
+[
+  { "id": "economy", "name": "경제 태그", "description": "가진 돈을 두 배로 (최대 +$40)", "minAnte": 1,
+    "effect": { "kind": "double_money", "max": 40 } },
+  { "id": "investment", "name": "투자 태그", "description": "보스 블라인드를 이기면 $25", "minAnte": 1,
+    "effect": { "kind": "boss_bonus", "amount": 25 } },
+  { "id": "handy", "name": "손재주 태그", "description": "이번 판에 낸 핸드 1번마다 $1", "minAnte": 2,
+    "effect": { "kind": "money_per_hand", "amount": 1 } },
+  { "id": "garbage", "name": "쓰레기 태그", "description": "이번 판에 쓰지 않은 버리기 1번마다 $1", "minAnte": 2,
+    "effect": { "kind": "money_per_unused_discard", "amount": 1 } },
+  { "id": "coupon", "name": "쿠폰 태그", "description": "다음 상점의 처음 진열 상품이 무료", "minAnte": 1,
+    "effect": { "kind": "free_shop" } },
+  { "id": "d6", "name": "주사위 태그", "description": "다음 상점의 다시 굴리기가 $0부터", "minAnte": 1,
+    "effect": { "kind": "free_reroll" } },
+  { "id": "speed", "name": "속도 태그", "description": "이번 판에 건너뛴 블라인드 1개마다 $5", "minAnte": 1,
+    "effect": { "kind": "money_per_skip", "amount": 5 } },
+  { "id": "juggle", "name": "저글링 태그", "description": "다음에 고른 라운드 손패 +3장", "minAnte": 1,
+    "effect": { "kind": "hand_size", "amount": 3 } }
+]
