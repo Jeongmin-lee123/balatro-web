@@ -56,13 +56,22 @@ export function rollPacks(rngState: number, count: number): [PackOffer[], number
   return [offers, random.state()];
 }
 
-/** 스탠다드 팩의 카드 한 장: 무늬와 숫자는 무작위, 일정 확률로 강화와 봉인 */
-function standardCard(random: () => number, serial: number): Card {
+/** 스탠다드 팩의 카드 한 장: 무늬와 숫자는 무작위, 일정 확률로 강화, 봉인, 에디션 */
+function standardCard(random: () => number, serial: number, editionRate: number): Card {
   const suit = pickFrom(SUITS, random());
   const rank = pickFrom(RANKS, random());
   const enhancement = random() < RULES.standardEnhanceChance ? pickFrom(ENHANCEMENTS, random()) : undefined;
   const seal = random() < RULES.standardSealChance ? pickFrom(SEALS, random()) : undefined;
-  return { id: `${suit}-${rank}-n${serial}`, rank, suit, ...(enhancement ? { enhancement } : {}), ...(seal ? { seal } : {}) };
+  const rolled = editionFromRoll(random(), editionRate);
+  const edition = rolled === "negative" ? undefined : rolled;
+  return {
+    id: `${suit}-${rank}-n${serial}`,
+    rank,
+    suit,
+    ...(enhancement ? { enhancement } : {}),
+    ...(seal ? { seal } : {}),
+    ...(edition ? { edition } : {}),
+  };
 }
 
 /** 팩을 연다. 카드 id에 쓰는 번호(nextUid)도 함께 돌려준다 */
@@ -83,7 +92,7 @@ export function openPack(state: RunState, packId: string): { pack: OpenPack; rng
         return edition ? { kind: "joker", id, edition } : { kind: "joker", id };
       }
       case "card":
-        return { kind: "card", card: standardCard(random.next, nextUid++) };
+        return { kind: "card", card: standardCard(random.next, nextUid++, modifiers(state.vouchers).editionRate) };
     }
   });
   const telescope = def.content === "planet" && modifiers(state.vouchers).telescope ? mostPlayedPlanet(state) : null;

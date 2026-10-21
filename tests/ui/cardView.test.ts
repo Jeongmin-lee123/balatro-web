@@ -28,6 +28,14 @@ describe("cardSvg", () => {
     const [queen] = cards("Qs");
     expect(cardSvg(queen!)).toContain('aria-label="Q 스페이드"');
   });
+
+  it("강화, 봉인, 에디션을 이름과 그림에 반영한다", () => {
+    const [king] = cards("Kh");
+    const svg = cardSvg({ ...king!, enhancement: "glass", seal: "red", edition: "foil" });
+    expect(svg).toContain('aria-label="K 하트, 유리, 빨강 봉인, 호일"');
+    expect(svg).toContain("var(--seal-red)");
+    expect(svg).toContain("var(--ed-foil)");
+  });
 });
 
 describe("facePortrait", () => {

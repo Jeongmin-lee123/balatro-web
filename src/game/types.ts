@@ -18,6 +18,8 @@ export interface Card {
   suit: Suit;
   enhancement?: Enhancement;
   seal?: Seal;
+  /** 호일, 홀로그래픽, 폴리크롬만 (네거티브는 일반 카드에 붙지 않는다) */
+  edition?: EditionId;
 }
 
 export type SortBy = "rank" | "suit";

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { HAND_TYPES, JOKERS } from "../../src/game/rules";
 import { cardChips, handBase, scoreHand } from "../../src/game/scoring";
-import type { HandLevels, JokerDef } from "../../src/game/types";
+import type { Card, HandLevels, JokerDef } from "../../src/game/types";
 import { cards, enhanced, sealed } from "./cards";
 
 const jokers = (...idList: string[]): JokerDef[] => idList.map((id) => JOKERS[id] as JokerDef);
@@ -131,6 +131,14 @@ describe("scoreHand", () => {
 
   it("빨강 봉인 강철은 손에서 x1.5를 두 번", () => {
     expect(scoreHand(cards("Kh Kc"), [], undefined, { held: [sealed("Qs", "red", "steel")] }).mult).toBe(2 * 1.5 * 1.5);
+  });
+
+  it("일반 카드 에디션: 호일 +50칩, 홀로 +10배수, 폴리크롬은 그때까지 배수에 x1.5", () => {
+    const foil = { ...(cards("Kh")[0] as Card), edition: "foil" as const };
+    const holo = { ...(cards("Kc")[0] as Card), edition: "holographic" as const };
+    expect(scoreHand([foil, holo], [])).toMatchObject({ chips: 10 + 10 + 50 + 10, mult: 2 + 10 });
+    const poly = { ...(cards("Kh")[0] as Card), edition: "polychrome" as const };
+    expect(scoreHand([poly, ...cards("Kc")], jokers("joker")).mult).toBe(2 * 1.5 + 4);
   });
 
   it("비밀 족보 기본값: 플러시 파이브 160칩 x16", () => {

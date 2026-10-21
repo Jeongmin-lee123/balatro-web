@@ -124,7 +124,7 @@ ui/ 는 data/ 를 직접 읽지 않는다 (faces.json 제외, ui/faceArt.ts만 �
 type Suit = "spades" | "hearts" | "clubs" | "diamonds";
 type Rank = 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14; // 11=J, 12=Q, 13=K, 14=A
 
-interface Card { id: string; rank: Rank; suit: Suit; enhancement?: Enhancement; seal?: Seal }   // id 예: "hearts-13", 강화와 봉인은 F15
+interface Card { id: string; rank: Rank; suit: Suit; enhancement?: Enhancement; seal?: Seal; edition?: EditionId }   // id 예: "hearts-13", 강화, 봉인, 에디션은 F15
 
 type HandType =
   | "flush_five" | "flush_house" | "five_of_a_kind"   // 비밀 족보 (F18)

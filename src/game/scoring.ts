@@ -102,6 +102,11 @@ export function scoreHand(cards: readonly Card[], jokers: readonly JokerDef[], l
       const enhanced = enhancementSteps(card, label, rules.random);
       steps.push(...enhanced.steps);
       money += enhanced.money;
+      // 에디션은 강화 다음 (호일, 홀로그래픽은 더하고 폴리크롬은 곱한다)
+      const before = editionBefore(card.edition, label);
+      if (before) steps.push(before);
+      const after = editionAfter(card.edition, label);
+      if (after) steps.push(after);
       if (card.seal === "gold") {
         money += GOLD_SEAL_MONEY;
         steps.push({ source: label, chips: 0, mult: 0, note: `금 봉인 $${GOLD_SEAL_MONEY}` });

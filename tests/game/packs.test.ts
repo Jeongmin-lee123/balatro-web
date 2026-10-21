@@ -49,6 +49,15 @@ describe("openPack", () => {
     expect(opened.nextUid).toBe(state.nextUid + 3);
   });
 
+  it("스탠다드 팩 카드에는 네거티브 에디션이 붙지 않는다", () => {
+    let state = newRun(6);
+    for (let i = 0; i < 2000; i++) {
+      const opened = openPack(state, "standard");
+      for (const choice of opened.pack.choices) if (choice.kind === "card") expect(choice.card.edition).not.toBe("negative");
+      state = { ...state, rngState: opened.rngState, nextUid: opened.nextUid };
+    }
+  });
+
   it("스탠다드 팩은 일정 비율로 강화 카드가 나온다", () => {
     let state = newRun(4);
     let enhanced = 0;

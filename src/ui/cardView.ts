@@ -1,6 +1,7 @@
 // 트럼프 카드 SVG. 무늬는 SVG 경로로 그린다. 유니코드 무늬 기호는 기기에 따라 이모지로 바뀌어 보인다.
 import { cardLabel, rankLabel } from "../game/deck";
-import type { Card, Enhancement, Rank, Seal, Suit } from "../game/types";
+import { editionDef } from "../game/editions";
+import type { Card, EditionId, Enhancement, Rank, Seal, Suit } from "../game/types";
 import { facePortrait, hasFace } from "./faceArt";
 
 const SUIT_SHAPES: Record<Suit, string> = {
@@ -79,8 +80,16 @@ export function cardName(card: Card): string {
   const parts = [cardLabel(card)];
   if (card.enhancement && card.enhancement !== "stone") parts.push(ENHANCEMENT_LOOK[card.enhancement].name);
   if (card.seal) parts.push(SEAL_NAMES[card.seal]);
+  if (card.edition) parts.push(editionDef(card.edition).name);
   return parts.join(", ");
 }
+
+/** 에디션 카드는 조커와 같은 색으로 테두리를 두껍게 */
+const EDITION_STROKE: Partial<Record<EditionId, string>> = {
+  foil: "var(--ed-foil)",
+  holographic: "var(--ed-holo)",
+  polychrome: "var(--ed-poly-b)",
+};
 
 const SEAL_NAMES: Record<Seal, string> = { red: "빨강 봉인", blue: "파랑 봉인", gold: "금 봉인", purple: "보라 봉인" };
 
@@ -105,7 +114,8 @@ function stoneFace(): string {
 
 export function cardSvg(card: Card): string {
   const fill = card.enhancement ? ENHANCEMENT_LOOK[card.enhancement].fill : "var(--card)";
-  const background = `<rect x="1" y="1" width="98" height="138" rx="7" fill="${fill}" stroke="var(--card-edge)" stroke-width="2"/>`;
+  const stroke = (card.edition && EDITION_STROKE[card.edition]) ?? "var(--card-edge)";
+  const background = `<rect x="2" y="2" width="96" height="136" rx="7" fill="${fill}" stroke="${stroke}" stroke-width="${card.edition ? 4 : 2}"/>`;
   if (card.enhancement === "stone") {
     return `<svg class="card-svg" viewBox="0 0 100 140" role="img" aria-label="${cardName(card)}">${background}${stoneFace()}${card.seal ? sealMark(card.seal) : ""}</svg>`;
   }
