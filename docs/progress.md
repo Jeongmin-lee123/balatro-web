@@ -33,3 +33,4 @@
 | 2026-10-21 | T-003 | Claude | Vite + TypeScript 7 + Vitest 5 골격. 갈무리 글꼴은 쓰는 3개만 연결(빌드 50MB -> 1.2MB). 줄바꿈 LF 고정(.gitattributes) |
 | 2026-10-21 | T-005 | Claude | types.ts, rules.ts, data/ 4종, rng.ts(mulberry32), deck.ts와 테스트 9개 |
 | 2026-10-21 | T-016 | 사용자 | 조커 그림 10장 모두 완료 |
+| 2026-10-21 | T-006 | Claude | handEval.ts. 위키 확인: 포카드는 투 페어를 포함하지 않음. 테스트 22개 |
