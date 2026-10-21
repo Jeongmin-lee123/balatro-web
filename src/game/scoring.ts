@@ -21,13 +21,30 @@ export function handBase(type: HandType, level: number): { chips: number; mult: 
   return { chips: info.chips + info.levelChips * (level - 1), mult: info.mult + info.levelMult * (level - 1) };
 }
 
-export function scoreHand(cards: readonly Card[], jokers: readonly JokerDef[], levels?: HandLevels): ScoreResult {
+/** 보스 블라인드가 점수 계산에 거는 제약 */
+export interface ScoreRules {
+  isDebuffed?: (card: Card) => boolean;
+  halveBase?: boolean;
+}
+
+/** 원작처럼 절반을 반올림하고 최소 1 */
+function halve(value: number): number {
+  return Math.max(1, Math.round(value / 2));
+}
+
+export function scoreHand(cards: readonly Card[], jokers: readonly JokerDef[], levels?: HandLevels, rules: ScoreRules = {}): ScoreResult {
   const hand = evaluateHand(cards);
   const level = levels?.[hand.type] ?? 1;
-  const base = handBase(hand.type, level);
-  const steps: ScoreStep[] = [{ source: handName(hand), chips: base.chips, mult: base.mult, note: `레벨 ${level}` }];
+  const leveled = handBase(hand.type, level);
+  const base = rules.halveBase ? { chips: halve(leveled.chips), mult: halve(leveled.mult) } : leveled;
+  const note = rules.halveBase ? `레벨 ${level}, 절반` : `레벨 ${level}`;
+  const steps: ScoreStep[] = [{ source: handName(hand), chips: base.chips, mult: base.mult, note }];
 
   for (const card of hand.scoringCards) {
+    if (rules.isDebuffed?.(card)) {
+      steps.push({ source: cardLabel(card), chips: 0, mult: 0, note: "무효" });
+      continue;
+    }
     steps.push({ source: cardLabel(card), chips: cardChips(card), mult: 0, note: "" });
     for (const joker of jokers) {
       const gain = onCardScored(joker.effect, card);

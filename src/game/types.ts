@@ -61,6 +61,27 @@ export interface PlanetDef {
   color: string;
 }
 
+export type BossEffect =
+  | { kind: "debuff_suit"; suit: Suit }
+  | { kind: "debuff_face" }
+  | { kind: "must_play"; count: number }
+  | { kind: "hands"; count: number }
+  | { kind: "discards"; count: number }
+  | { kind: "halve_base" }
+  | { kind: "lower_level" }
+  | { kind: "none" };
+
+export interface BossDef {
+  id: string;
+  name: string;
+  description: string;
+  /** 이 앤티부터 나올 수 있다 */
+  minAnte: number;
+  /** 앤티 기본 점수에 곱하는 값 */
+  multiplier: number;
+  effect: BossEffect;
+}
+
 /** 족보별 레벨. 처음은 모두 1 */
 export type HandLevels = Record<HandType, number>;
 
@@ -140,6 +161,10 @@ export interface RunState {
   money: number;
   jokers: OwnedJoker[];
   handLevels: HandLevels;
+  /** 이번 앤티의 보스 id. 앤티가 바뀔 때 새로 고른다 */
+  boss: string;
+  /** 이번 판에 나온 보스. 모두 한 번씩 나오기 전에는 같은 보스를 다시 고르지 않는다 */
+  bossesSeen: string[];
   /** 새 조커 uid를 만들 때 쓰는 번호 */
   nextUid: number;
   round: RoundState;

@@ -65,6 +65,20 @@ describe("scoreHand", () => {
     expect(scoreHand(cards("Kh Kc"), [], levels)).toMatchObject({ chips: 40 + 20, mult: 4 });
   });
 
+  it("무효 카드는 족보에는 들어가지만 칩과 카드 반응 조커가 없다", () => {
+    const result = scoreHand(cards("Kd Kc"), jokers("greedy_joker", "gluttonous_joker"), undefined, {
+      isDebuffed: (card) => card.suit === "clubs",
+    });
+    expect(result.hand.type).toBe("pair");
+    expect(result).toMatchObject({ chips: 10 + 10, mult: 2 + 3 });
+    expect(result.steps.find((s) => s.source === "K 클로버")?.note).toBe("무효");
+  });
+
+  it("부싯돌: 족보 기본값을 절반으로 (반올림, 최소 1)", () => {
+    expect(scoreHand(cards("Ah"), [], undefined, { halveBase: true })).toMatchObject({ chips: 3 + 11, mult: 1 });
+    expect(scoreHand(cards("7h 7d 7s"), [], undefined, { halveBase: true })).toMatchObject({ chips: 15 + 21, mult: 2 });
+  });
+
   it("로열 플러시는 이름만 다르고 스트레이트 플러시 값을 쓴다", () => {
     const result = scoreHand(cards("Ts Js Qs Ks As"), []);
     expect(result.steps[0]).toMatchObject({ source: "로열 플러시", chips: 100, mult: 8 });

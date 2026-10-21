@@ -1,16 +1,19 @@
 // 한 판의 상태 전이. 판 상태는 apply(state, action)으로만 바꾼다. (design.md D-006)
 // 허용되지 않는 행동은 받은 상태를 그대로 돌려준다.
 import { nextBlind, targetScore } from "./blinds";
+import { bossDef, canPlayCount, isDebuffed, pickBoss, roundLimits } from "./bosses";
 import { createDeck, drawCards, sortHand } from "./deck";
 import { cashOutLines } from "./economy";
 import { nextRandom, shuffle } from "./rng";
 import { ANTE_COUNT, HAND_TYPES, JOKERS, PLANETS, RULES } from "./rules";
+import { evaluateHand } from "./handEval";
 import { scoreHand } from "./scoring";
 import { offerPrice, rollOffers, sellValue } from "./shop";
-import type { Action, HandLevels, JokerDef, OwnedJoker, PlanetDef, RoundState, RunState, SortBy } from "./types";
+import type { Action, BossDef, HandLevels, JokerDef, OwnedJoker, PlanetDef, RoundState, RunState, SortBy } from "./types";
 
-function dealRound(rngState: number, sortBy: SortBy): { round: RoundState; rngState: number } {
+function dealRound(rngState: number, sortBy: SortBy, boss: BossDef | null): { round: RoundState; rngState: number } {
   const [deck, next] = shuffle(createDeck(), rngState);
+  const limits = roundLimits(boss?.effect ?? null);
   const { drawn, rest } = drawCards(deck, RULES.handSize);
   return {
     rngState: next,
@@ -18,8 +21,8 @@ function dealRound(rngState: number, sortBy: SortBy): { round: RoundState; rngSt
       drawPile: rest,
       hand: sortHand(drawn, sortBy),
       selected: [],
-      handsLeft: RULES.hands,
-      discardsLeft: RULES.discards,
+      handsLeft: limits.hands,
+      discardsLeft: limits.discards,
       score: 0,
       lastScore: null,
       sortBy,
@@ -28,7 +31,8 @@ function dealRound(rngState: number, sortBy: SortBy): { round: RoundState; rngSt
 }
 
 export function newRun(seed: number): RunState {
-  const { round, rngState } = dealRound(seed >>> 0, "rank");
+  const picked = pickBoss(seed >>> 0, 1, []);
+  const { round, rngState } = dealRound(picked.rngState, "rank", null);
   return {
     seed,
     rngState,
@@ -38,6 +42,8 @@ export function newRun(seed: number): RunState {
     money: RULES.startingMoney,
     jokers: [],
     handLevels: Object.fromEntries(HAND_TYPES.map((type) => [type, 1])) as HandLevels,
+    boss: picked.boss,
+    bossesSeen: picked.seen,
     nextUid: 1,
     round,
     cashOut: null,
@@ -46,8 +52,18 @@ export function newRun(seed: number): RunState {
   };
 }
 
+/** 보스 블라인드일 때만 이번 앤티의 보스를 돌려준다 */
+export function activeBoss(state: Pick<RunState, "blindIndex" | "boss">): BossDef | null {
+  return state.blindIndex === 2 ? bossDef(state.boss) : null;
+}
+
 export function currentTarget(state: RunState): number {
-  return targetScore(state.ante, state.blindIndex);
+  return targetScore(state.ante, state.blindIndex, bossDef(state.boss).multiplier);
+}
+
+/** 고른 카드로 지금 플레이할 수 있는지. 화면의 플레이 버튼도 이 함수를 쓴다 */
+export function canPlay(state: RunState): boolean {
+  return state.round.handsLeft > 0 && canPlayCount(activeBoss(state)?.effect ?? null, state.round.selected.length);
 }
 
 export function jokerDefs(jokers: readonly OwnedJoker[]): JokerDef[] {
@@ -76,15 +92,26 @@ function toggleCard(state: RunState, cardId: string): RunState {
   return { ...state, round: { ...round, selected: [...round.selected, cardId] } };
 }
 
-function play(state: RunState): RunState {
-  if (state.round.selected.length === 0 || state.round.handsLeft === 0) return state;
+/** 팔: 낸 족보의 레벨을 점수 계산 전에 1 내린다 (최소 1) */
+function lowerPlayedLevel(levels: HandLevels, played: RoundState["hand"]): HandLevels {
+  const type = evaluateHand(played).type;
+  return { ...levels, [type]: Math.max(1, levels[type] - 1) };
+}
 
+function play(state: RunState): RunState {
+  if (!canPlay(state)) return state;
+
+  const effect = activeBoss(state)?.effect ?? null;
   const { taken, round } = takeSelected(state.round);
-  const result = scoreHand(taken, jokerDefs(state.jokers), state.handLevels);
+  const handLevels = effect?.kind === "lower_level" ? lowerPlayedLevel(state.handLevels, taken) : state.handLevels;
+  const result = scoreHand(taken, jokerDefs(state.jokers), handLevels, {
+    isDebuffed: effect ? (card) => isDebuffed(effect, card) : undefined,
+    halveBase: effect?.kind === "halve_base",
+  });
   const score = state.round.score + result.total;
   const handsLeft = state.round.handsLeft - 1;
   const stats = { bestHand: Math.max(state.stats.bestHand, result.total), handsPlayed: state.stats.handsPlayed + 1 };
-  const next: RunState = { ...state, stats, round: { ...round, score, handsLeft, lastScore: result } };
+  const next: RunState = { ...state, stats, handLevels, round: { ...round, score, handsLeft, lastScore: result } };
 
   if (score >= currentTarget(state)) {
     if (state.ante === ANTE_COUNT && state.blindIndex === 2) return { ...next, phase: "won" };
@@ -170,8 +197,11 @@ function moveJoker(state: RunState, uid: string, to: number): RunState {
 
 function nextRound(state: RunState): RunState {
   const { ante, blindIndex } = nextBlind(state.ante, state.blindIndex);
-  const { round, rngState } = dealRound(state.rngState, state.round.sortBy);
-  return { ...state, phase: "round", ante, blindIndex, round, rngState, shop: null };
+  const picked = ante === state.ante ? null : pickBoss(state.rngState, ante, state.bossesSeen);
+  const boss = picked?.boss ?? state.boss;
+  const bossesSeen = picked?.seen ?? state.bossesSeen;
+  const { round, rngState } = dealRound(picked?.rngState ?? state.rngState, state.round.sortBy, activeBoss({ blindIndex, boss }));
+  return { ...state, phase: "round", ante, blindIndex, boss, bossesSeen, round, rngState, shop: null };
 }
 
 function newRunFrom(state: RunState, seed?: number): RunState {

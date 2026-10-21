@@ -4,7 +4,8 @@ import blindsJson from "../../data/blinds.json";
 import rulesJson from "../../data/rules.json";
 import jokersJson from "../../data/jokers.json";
 import planetsJson from "../../data/planets.json";
-import type { HandType, JokerDef, PlanetDef, ShopItemKind } from "./types";
+import bossesJson from "../../data/bosses.json";
+import type { BossDef, HandType, JokerDef, PlanetDef, ShopItemKind } from "./types";
 
 export interface HandInfo {
   name: string;
@@ -38,6 +39,11 @@ const planetList = planetsJson as PlanetDef[];
 export const PLANETS: Record<string, PlanetDef> = Object.fromEntries(planetList.map((planet) => [planet.id, planet]));
 
 export const PLANET_IDS: string[] = planetList.map((planet) => planet.id);
+
+/** data/bosses.json 순서 그대로. 보스 고르기의 후보 순서가 바뀌지 않게 한다 */
+export const BOSS_LIST = bossesJson as BossDef[];
+
+export const BOSSES: Record<string, BossDef> = Object.fromEntries(BOSS_LIST.map((boss) => [boss.id, boss]));
 
 export const ANTE_COUNT = BLINDS.anteBase.length;
 

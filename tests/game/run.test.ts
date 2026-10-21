@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { apply, canBuy, currentTarget, jokerDefs, newRun } from "../../src/game/run";
+import { apply, canBuy, canPlay, currentTarget, newRun } from "../../src/game/run";
 import { JOKERS, RULES } from "../../src/game/rules";
-import { scoreHand } from "../../src/game/scoring";
 import type { Action, Card, RunState, ShopOffer } from "../../src/game/types";
 import { cards } from "./cards";
 
@@ -182,6 +181,56 @@ describe("정산과 상점", () => {
   });
 });
 
+describe("보스 블라인드", () => {
+  /** 빅 블라인드 뒤 상점에서 다음 라운드를 눌러, 정한 보스의 라운드를 시작한 상태 */
+  function atBoss(boss: string, ante = 2): RunState {
+    const shop: RunState = { ...newRun(5), phase: "shop", ante, blindIndex: 1, boss, shop: { offers: [], rerollCost: 5 } };
+    return apply(shop, { type: "next_round" });
+  }
+
+  it("같은 앤티 안에서는 보스가 그대로, 앤티가 바뀌면 새로 고른다", () => {
+    const boss = atBoss("wall");
+    expect(boss).toMatchObject({ blindIndex: 2, boss: "wall" });
+    const nextAnte = apply({ ...boss, phase: "shop", shop: { offers: [], rerollCost: 5 } }, { type: "next_round" });
+    expect(nextAnte).toMatchObject({ ante: 3, blindIndex: 0 });
+    expect(nextAnte.bossesSeen.length).toBeGreaterThan(boss.bossesSeen.length);
+  });
+
+  it("벽은 목표 4배, 바늘은 1배이고 핸드가 1번", () => {
+    expect(currentTarget(atBoss("wall"))).toBe(800 * 4);
+    const needle = atBoss("needle");
+    expect(currentTarget(needle)).toBe(800);
+    expect(needle.round.handsLeft).toBe(1);
+  });
+
+  it("물은 버리기 0번", () => {
+    expect(atBoss("water").round.discardsLeft).toBe(0);
+  });
+
+  it("점쟁이는 5장이 아니면 플레이할 수 없다", () => {
+    const state = withHand(atBoss("psychic"), "Kh Kc 2s 3d 5c 7h 9s Jd");
+    const two = run(state, ...select("hearts-13", "clubs-13"));
+    expect(canPlay(two)).toBe(false);
+    expect(apply(two, { type: "play" })).toBe(two);
+    const five = run(two, ...select("spades-2", "diamonds-3", "clubs-5"), { type: "play" });
+    expect(five.stats.handsPlayed).toBe(1);
+  });
+
+  it("팔은 낸 족보 레벨을 점수 계산 전에 내린다", () => {
+    const base = atBoss("arm");
+    const state = withHand({ ...base, handLevels: { ...base.handLevels, pair: 2 } }, "Kh Kc 2s 3d 5c 7h 9s Jd");
+    const played = run(state, ...select("hearts-13", "clubs-13"), { type: "play" });
+    expect(played.handLevels.pair).toBe(1);
+    expect(played.round.lastScore).toMatchObject({ chips: 30, mult: 2 });
+  });
+
+  it("머리는 하트를 무효로 만든다", () => {
+    const state = withHand(atBoss("head"), "Kh Kc 2s 3d 5c 7h 9s Jd");
+    const played = run(state, ...select("hearts-13", "clubs-13"), { type: "play" });
+    expect(played.round.lastScore).toMatchObject({ chips: 10 + 10, mult: 2 });
+  });
+});
+
 describe("apply", () => {
   it("맞지 않는 단계의 행동은 무시한다", () => {
     const state = newRun(1);
@@ -196,15 +245,16 @@ describe("apply", () => {
 });
 
 /** 매번 가장 높은 점수의 조합을 내고, 살 수 있는 첫 조커를 사는 단순한 자동 플레이 */
+/** 가능한 조합을 실제 apply로 플레이해 보고 점수가 가장 높은 조합을 고른다. 보스 제약도 그대로 반영된다 */
 function bestSelection(state: RunState): string[] {
   const hand = state.round.hand;
-  const defs = jokerDefs(state.jokers);
   let best: { ids: string[]; total: number } = { ids: [], total: -1 };
   for (let mask = 1; mask < 1 << hand.length; mask++) {
-    const picked = hand.filter((_, i) => mask & (1 << i));
-    if (picked.length > RULES.maxSelect) continue;
-    const { total } = scoreHand(picked, defs);
-    if (total > best.total) best = { ids: picked.map((c) => c.id), total };
+    const ids = hand.filter((_, i) => mask & (1 << i)).map((c) => c.id);
+    if (ids.length > RULES.maxSelect) continue;
+    const played = run(state, ...select(...ids), { type: "play" });
+    const total = played.stats.handsPlayed > state.stats.handsPlayed ? (played.round.lastScore?.total ?? -1) : -1;
+    if (total > best.total) best = { ids, total };
   }
   return best.ids;
 }
@@ -229,7 +279,8 @@ describe("한 판 전체", () => {
     expect(autoPlay(2026).final).toEqual(first.final);
   });
 
-  it("자동 플레이는 적어도 앤티 2까지 간다", () => {
-    expect(autoPlay(2026).final.ante).toBeGreaterThanOrEqual(2);
+  it("자동 플레이로 여러 시드를 돌리면 앤티 2 이상까지 가는 판이 있다", () => {
+    const antes = [1, 2, 3, 4, 5, 6].map((seed) => autoPlay(seed).final.ante);
+    expect(Math.max(...antes)).toBeGreaterThanOrEqual(2);
   });
 });

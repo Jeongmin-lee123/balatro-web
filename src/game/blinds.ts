@@ -11,10 +11,12 @@ export function blindName(blindIndex: BlindIndex): string {
   return blindInfo(blindIndex).name;
 }
 
-export function targetScore(ante: number, blindIndex: BlindIndex): number {
+/** bossMultiplier를 주면 보스 블라인드(blindIndex 2)의 기본 배수 대신 그 값을 쓴다 */
+export function targetScore(ante: number, blindIndex: BlindIndex, bossMultiplier?: number): number {
   const base = BLINDS.anteBase[ante - 1];
   if (base === undefined) throw new Error(`없는 앤티: ${ante}`);
-  return Math.floor(base * blindInfo(blindIndex).multiplier);
+  const multiplier = blindIndex === 2 && bossMultiplier !== undefined ? bossMultiplier : blindInfo(blindIndex).multiplier;
+  return Math.floor(base * multiplier);
 }
 
 /** 스몰 -> 빅 -> 보스 -> 다음 앤티 스몰 */
