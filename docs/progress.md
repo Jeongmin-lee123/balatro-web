@@ -37,3 +37,4 @@
 | 2026-10-21 | T-007 | Claude | jokers.ts(효과 6종), scoring.ts. 테스트 공용 도구 tests/game/cards.ts로 중복 제거 |
 | 2026-10-21 | T-008 | Claude | blinds.ts, economy.ts. 이자는 보상 받기 전 금액으로 계산 |
 | 2026-10-21 | T-009 | Claude | shop.ts. 진열은 data/jokers.json에서 중복 허용 무작위 |
+| 2026-10-21 | T-010 | Claude | run.ts. 안테 8 보스 통과는 정산 없이 바로 승리. 자동 플레이 테스트로 한 판 재현성 확인. 테스트 합계 82개 |

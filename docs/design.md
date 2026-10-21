@@ -173,7 +173,7 @@ type Action =
 | blinds.ts | `targetScore(ante, blindIndex): number`, `blindReward(ante, blindIndex): number`, `blindName(blindIndex): string` |
 | economy.ts | `cashOutLines({ ante, blindIndex, handsLeft, money }): CashOut`, `interest(money): number` |
 | shop.ts | `rollOffers(rngState, count): [defIds, nextState]`, `sellValue(paid): number` |
-| run.ts | `newRun(seed): RunState`, `apply(state, action): RunState` |
+| run.ts | `newRun(seed): RunState`, `apply(state, action): RunState`, `currentTarget(state)`, `jokerDefs(owned)` |
 | records.ts | `loadRecords(): Records`, `saveRun(state): Records` |
 
 ### 4.1 점수 계산 순서 (scoring.ts)
