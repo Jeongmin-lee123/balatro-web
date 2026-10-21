@@ -4,10 +4,10 @@ import { nextBlind, targetScore } from "./blinds";
 import { createDeck, drawCards, sortHand } from "./deck";
 import { cashOutLines } from "./economy";
 import { nextRandom, shuffle } from "./rng";
-import { ANTE_COUNT, JOKERS, RULES } from "./rules";
+import { ANTE_COUNT, HAND_TYPES, JOKERS, PLANETS, RULES } from "./rules";
 import { scoreHand } from "./scoring";
-import { rollOffers, sellValue } from "./shop";
-import type { Action, JokerDef, OwnedJoker, RoundState, RunState, SortBy } from "./types";
+import { offerPrice, rollOffers, sellValue } from "./shop";
+import type { Action, HandLevels, JokerDef, OwnedJoker, PlanetDef, RoundState, RunState, SortBy } from "./types";
 
 function dealRound(rngState: number, sortBy: SortBy): { round: RoundState; rngState: number } {
   const [deck, next] = shuffle(createDeck(), rngState);
@@ -37,6 +37,7 @@ export function newRun(seed: number): RunState {
     blindIndex: 0,
     money: RULES.startingMoney,
     jokers: [],
+    handLevels: Object.fromEntries(HAND_TYPES.map((type) => [type, 1])) as HandLevels,
     nextUid: 1,
     round,
     cashOut: null,
@@ -79,7 +80,7 @@ function play(state: RunState): RunState {
   if (state.round.selected.length === 0 || state.round.handsLeft === 0) return state;
 
   const { taken, round } = takeSelected(state.round);
-  const result = scoreHand(taken, jokerDefs(state.jokers));
+  const result = scoreHand(taken, jokerDefs(state.jokers), state.handLevels);
   const score = state.round.score + result.total;
   const handsLeft = state.round.handsLeft - 1;
   const stats = { bestHand: Math.max(state.stats.bestHand, result.total), handsPlayed: state.stats.handsPlayed + 1 };
@@ -112,17 +113,32 @@ function collect(state: RunState): RunState {
   };
 }
 
+/** 상점 칸이 지금 살 수 있는 상태인지. 화면의 버튼 비활성화도 이 함수를 쓴다 */
+export function canBuy(state: RunState, slot: number): boolean {
+  const offer = state.shop?.offers[slot];
+  if (!offer || state.money < offerPrice(offer)) return false;
+  return offer.kind !== "joker" || state.jokers.length < RULES.jokerSlots;
+}
+
 function buy(state: RunState, slot: number): RunState {
-  const defId = state.shop?.offers[slot];
-  const def = defId ? JOKERS[defId] : undefined;
-  if (!state.shop || !def || state.money < def.price || state.jokers.length >= RULES.jokerSlots) return state;
-  const offers = state.shop.offers.map((offer, i) => (i === slot ? null : offer));
-  return {
+  const offer = state.shop?.offers[slot];
+  if (!state.shop || !offer || !canBuy(state, slot)) return state;
+  const price = offerPrice(offer);
+  const bought: RunState = {
     ...state,
-    money: state.money - def.price,
-    jokers: [...state.jokers, { uid: `j${state.nextUid}`, defId: def.id, paid: def.price }],
+    money: state.money - price,
+    shop: { ...state.shop, offers: state.shop.offers.map((item, i) => (i === slot ? null : item)) },
+  };
+
+  if (offer.kind === "planet") {
+    // 소모품 칸 없이 사는 즉시 레벨을 올린다 (design.md D-010)
+    const hand = (PLANETS[offer.id] as PlanetDef).hand;
+    return { ...bought, handLevels: { ...state.handLevels, [hand]: state.handLevels[hand] + 1 } };
+  }
+  return {
+    ...bought,
+    jokers: [...state.jokers, { uid: `j${state.nextUid}`, defId: offer.id, paid: price }],
     nextUid: state.nextUid + 1,
-    shop: { ...state.shop, offers },
   };
 }
 

@@ -3,7 +3,8 @@ import handsJson from "../../data/hands.json";
 import blindsJson from "../../data/blinds.json";
 import rulesJson from "../../data/rules.json";
 import jokersJson from "../../data/jokers.json";
-import type { HandType, JokerDef } from "./types";
+import planetsJson from "../../data/planets.json";
+import type { HandType, JokerDef, PlanetDef, ShopItemKind } from "./types";
 
 export interface HandInfo {
   name: string;
@@ -23,7 +24,7 @@ export const HANDS: Record<HandType, HandInfo> = handsJson;
 
 export const BLINDS: { anteBase: number[]; blinds: BlindInfo[]; finalBossReward: number } = blindsJson;
 
-export const RULES = rulesJson;
+export const RULES: Omit<typeof rulesJson, "shopWeights"> & { shopWeights: Record<ShopItemKind, number> } = rulesJson;
 
 const jokerList = jokersJson as JokerDef[];
 
@@ -32,4 +33,12 @@ export const JOKERS: Record<string, JokerDef> = Object.fromEntries(jokerList.map
 /** 상점 진열 순서를 고정하기 위해 data/jokers.json 순서를 그대로 쓴다 */
 export const JOKER_IDS: string[] = jokerList.map((joker) => joker.id);
 
+const planetList = planetsJson as PlanetDef[];
+
+export const PLANETS: Record<string, PlanetDef> = Object.fromEntries(planetList.map((planet) => [planet.id, planet]));
+
+export const PLANET_IDS: string[] = planetList.map((planet) => planet.id);
+
 export const ANTE_COUNT = BLINDS.anteBase.length;
+
+export const HAND_TYPES = Object.keys(HANDS) as HandType[];

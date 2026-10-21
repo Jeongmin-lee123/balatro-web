@@ -1,0 +1,11 @@
+[
+  { "id": "pluto", "name": "명왕성", "hand": "high_card", "price": 3, "color": "#b8a48c" },
+  { "id": "mercury", "name": "수성", "hand": "pair", "price": 3, "color": "#9a8f86" },
+  { "id": "uranus", "name": "천왕성", "hand": "two_pair", "price": 3, "color": "#7cc4c8" },
+  { "id": "venus", "name": "금성", "hand": "three_of_a_kind", "price": 3, "color": "#e0b25a" },
+  { "id": "saturn", "name": "토성", "hand": "straight", "price": 3, "color": "#d8b878" },
+  { "id": "jupiter", "name": "목성", "hand": "flush", "price": 3, "color": "#c98a5a" },
+  { "id": "earth", "name": "지구", "hand": "full_house", "price": 3, "color": "#4f8ac9" },
+  { "id": "mars", "name": "화성", "hand": "four_of_a_kind", "price": 3, "color": "#c2553a" },
+  { "id": "neptune", "name": "해왕성", "hand": "straight_flush", "price": 3, "color": "#3d5fc4" }
+]

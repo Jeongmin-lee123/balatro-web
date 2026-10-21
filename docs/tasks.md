@@ -45,6 +45,10 @@
 requirements.md 3.2의 F10~F18. 하나를 시작할 때 아래 양식으로 상세를 쓰고 번호를 T-018부터 붙인다.
 그림이 필요한 작업(F12 조커 추가 등)은 그림 생성을 별도 "사람" 작업으로 나눈다.
 
+| 번호 | 작업 | 기능 | 담당 | 상태 | 선행 |
+|---|---|---|---|---|---|
+| T-018 | 행성 카드: 족보 레벨, 상점 진열, 구매 즉시 레벨업 | F10 | AI | 완료 | T-017 |
+
 ## 작업 상세
 
 ### T-003 프로젝트 골격
@@ -149,6 +153,20 @@ requirements.md 3.2의 F10~F18. 하나를 시작할 때 아래 양식으로 상�
 
 - 할 일: design.md 5.3 프롬프트로 ChatGPT에서 그림 생성, art/jokers/<id>.png로 저장, 5.3 표의 "그림" 칸 수정
 - 완료 기준: 1차 조커 10종 그림이 모두 있다
+
+### T-018 행성 카드
+
+- 할 일
+  - RunState에 `handLevels`(족보별 레벨, 처음 모두 1) 추가
+  - data/planets.json(행성 9종: id, 이름, 올리는 족보, 가격 $3, 그림 색), rules.json에 상점 진열 비율 `shopWeights`(조커 20, 행성 4. 원작 비율에서 타로 제외)
+  - 상점 진열 칸을 조커 id 문자열에서 `{ kind: "joker" | "planet", id }`로 바꾼다
+  - 행성은 사는 즉시 해당 족보 레벨 +1 (소모품 칸 없음, design.md D-010)
+  - scoring.ts: 족보 기본값 = 기본 칩 + 레벨업 칩 x (레벨 - 1), 배수도 같은 방식
+  - 화면: 상점에 행성 카드(도트 행성 그림 + 족보 이름 + "레벨 n -> n+1"), 족보 미리보기와 계산 과정에 레벨 표시
+- 완료 기준: 수성 2장을 산 뒤 원 페어 기본값이 10 + 15 x 2 = 40칩, 2 + 1 x 2 = 4배수. 같은 시드면 같은 진열
+- 건드리는 파일: types.ts, rules.ts, shop.ts, scoring.ts, run.ts, data/planets.json, data/rules.json, ui/screens/shopScreen.ts, ui/screens/roundScreen.ts, ui/planetView.ts(새 파일)
+- 테스트 방법: tests/game/scoring.test.ts, shop.test.ts, run.test.ts에 추가
+- 지우거나 합친 코드: 없음
 
 ### 작업 상세 작성 양식
 

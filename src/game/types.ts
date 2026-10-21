@@ -51,6 +51,26 @@ export interface JokerDef {
   effect: JokerEffect;
 }
 
+export interface PlanetDef {
+  id: string;
+  name: string;
+  /** 이 행성이 레벨을 올리는 족보 */
+  hand: HandType;
+  price: number;
+  /** 상점 카드의 행성 그림 색 */
+  color: string;
+}
+
+/** 족보별 레벨. 처음은 모두 1 */
+export type HandLevels = Record<HandType, number>;
+
+export type ShopItemKind = "joker" | "planet";
+
+export interface ShopOffer {
+  kind: ShopItemKind;
+  id: string;
+}
+
 export interface OwnedJoker {
   /** 같은 조커를 두 장 가질 수 있어 defId와 따로 둔다 */
   uid: string;
@@ -100,8 +120,8 @@ export interface CashOut {
 }
 
 export interface ShopState {
-  /** 조커 defId. 산 칸은 null */
-  offers: (string | null)[];
+  /** 산 칸은 null */
+  offers: (ShopOffer | null)[];
   rerollCost: number;
 }
 
@@ -119,6 +139,7 @@ export interface RunState {
   blindIndex: BlindIndex;
   money: number;
   jokers: OwnedJoker[];
+  handLevels: HandLevels;
   /** 새 조커 uid를 만들 때 쓰는 번호 */
   nextUid: number;
   round: RoundState;

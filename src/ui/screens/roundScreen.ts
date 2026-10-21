@@ -1,7 +1,7 @@
 import { cardLabel } from "../../game/deck";
 import { evaluateHand } from "../../game/handEval";
-import { HANDS, RULES } from "../../game/rules";
-import { handName } from "../../game/scoring";
+import { RULES } from "../../game/rules";
+import { handBase, handName } from "../../game/scoring";
 import type { RunState, ScoreResult } from "../../game/types";
 import { cardSvg } from "../cardView";
 import { button, esc } from "../dom";
@@ -39,8 +39,9 @@ function preview(state: RunState): string {
   const picked = state.round.hand.filter((card) => state.round.selected.includes(card.id));
   if (picked.length === 0) return `<p class="preview">고른 카드 없음</p>`;
   const hand = evaluateHand(picked);
-  const base = HANDS[hand.type];
-  return `<p class="preview"><b>${esc(handName(hand))}</b> <span class="cxm__chips">${base.chips}</span><span class="cxm__x">X</span><span class="cxm__mult">${base.mult}</span></p>`;
+  const level = state.handLevels[hand.type];
+  const base = handBase(hand.type, level);
+  return `<p class="preview"><b>${esc(handName(hand))}</b> <small>레벨 ${level}</small> <span class="cxm__chips">${base.chips}</span><span class="cxm__x">X</span><span class="cxm__mult">${base.mult}</span></p>`;
 }
 
 export function renderRoundScreen(state: RunState): string {

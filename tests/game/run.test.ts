@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { apply, currentTarget, jokerDefs, newRun } from "../../src/game/run";
+import { apply, canBuy, currentTarget, jokerDefs, newRun } from "../../src/game/run";
 import { JOKERS, RULES } from "../../src/game/rules";
 import { scoreHand } from "../../src/game/scoring";
-import type { Action, Card, RunState } from "../../src/game/types";
+import type { Action, Card, RunState, ShopOffer } from "../../src/game/types";
 import { cards } from "./cards";
 
 /** 손패를 원하는 카드로 바꾼 상태 */
@@ -90,26 +90,55 @@ describe("플레이와 버리기", () => {
 });
 
 describe("정산과 상점", () => {
+  /** 진열은 0번 칸 조커, 1번 칸 수성(원 페어 행성)으로 고정한다 */
   function inShop(money: number): RunState {
     const state = withHand({ ...newRun(3), money }, "Ah Kh Qh Jh Th 2c 3c 4c", { score: 299 });
-    return run(state, ...select("hearts-14"), { type: "play" }, { type: "collect" });
+    const shop = run(state, ...select("hearts-14"), { type: "play" }, { type: "collect" });
+    const offers: ShopOffer[] = [
+      { kind: "joker", id: "joker" },
+      { kind: "planet", id: "mercury" },
+    ];
+    return { ...shop, shop: { ...(shop.shop as NonNullable<RunState["shop"]>), offers } };
   }
 
-  it("정산을 받으면 돈이 늘고 조커 2장이 진열된다", () => {
-    const shop = inShop(10);
+  it("정산을 받으면 돈이 늘고 상품이 진열된다", () => {
+    const state = withHand({ ...newRun(3), money: 10 }, "Ah Kh Qh Jh Th 2c 3c 4c", { score: 299 });
+    const shop = run(state, ...select("hearts-14"), { type: "play" }, { type: "collect" });
     expect(shop.phase).toBe("shop");
     expect(shop.money).toBe(10 + 3 + 3 + 2);
     expect(shop.shop?.offers).toHaveLength(RULES.shopSlots);
   });
 
-  it("사면 돈이 줄고 칸이 빈다. 빈 칸은 다시 살 수 없다", () => {
+  it("조커를 사면 돈이 줄고 칸이 빈다. 빈 칸은 다시 살 수 없다", () => {
     const shop = inShop(10);
-    const price = JOKERS[shop.shop?.offers[0] as string]?.price as number;
     const bought = apply(shop, { type: "buy", slot: 0 });
-    expect(bought.money).toBe(shop.money - price);
+    expect(bought.money).toBe(shop.money - (JOKERS.joker?.price as number));
     expect(bought.jokers).toHaveLength(1);
     expect(bought.shop?.offers[0]).toBeNull();
     expect(apply(bought, { type: "buy", slot: 0 })).toBe(bought);
+  });
+
+  it("행성을 사면 조커는 늘지 않고 그 족보 레벨이 오른다", () => {
+    const shop = inShop(10);
+    const bought = apply(shop, { type: "buy", slot: 1 });
+    expect(bought.money).toBe(shop.money - 3);
+    expect(bought.jokers).toHaveLength(0);
+    expect(bought.handLevels.pair).toBe(2);
+    expect(bought.handLevels.flush).toBe(1);
+  });
+
+  it("조커 칸이 가득 차도 행성은 살 수 있다", () => {
+    const shop = inShop(50);
+    const full = { ...shop, jokers: Array.from({ length: RULES.jokerSlots }, (_, i) => ({ uid: `x${i}`, defId: "joker", paid: 2 })) };
+    expect(canBuy(full, 0)).toBe(false);
+    expect(canBuy(full, 1)).toBe(true);
+  });
+
+  it("레벨이 오른 족보는 다음 라운드 점수에 반영된다", () => {
+    const leveled = apply(inShop(10), { type: "buy", slot: 1 });
+    const round = withHand(apply(leveled, { type: "next_round" }), "Kh Kc 2s 3d 5c 7h 9s Jd");
+    const played = run(round, ...select("hearts-13", "clubs-13"), { type: "play" });
+    expect(played.round.lastScore).toMatchObject({ chips: 25 + 20, mult: 3, total: 135 });
   });
 
   it("돈이 모자라면 살 수 없다", () => {

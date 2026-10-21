@@ -10,5 +10,9 @@
   "interestCap": 5,
   "shopSlots": 2,
   "rerollBase": 5,
-  "rerollStep": 1
+  "rerollStep": 1,
+  "shopWeights": {
+    "joker": 20,
+    "planet": 4
+  }
 }

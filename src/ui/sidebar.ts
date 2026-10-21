@@ -13,7 +13,7 @@ function fmt(value: number): string {
 
 function blindBlock(state: RunState): string {
   if (state.phase === "shop") {
-    return `<div class="blind blind--shop"><span class="blind__name">상점</span><span class="blind__sub">다음 블라인드 전에 조커를 고른다</span></div>`;
+    return `<div class="blind blind--shop"><span class="blind__name">상점</span><span class="blind__sub">다음 블라인드 전에 조커와 행성을 고른다</span></div>`;
   }
   return `
     <div class="blind ${BLIND_CLASS[state.blindIndex]}">

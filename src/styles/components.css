@@ -247,11 +247,13 @@
 }
 
 .joker,
+.planet,
 .joker-slot {
   min-width: 0;
 }
 
-.joker {
+.joker,
+.planet {
   display: grid;
   align-content: start;
   justify-items: center;
@@ -598,4 +600,21 @@
   .btn--discard {
     padding: var(--gap-2) var(--gap-4);
   }
+}
+
+/* 행성 카드: 조커 카드와 같은 틀에 밤하늘 바탕 */
+.planet__face {
+  width: min(100%, 106px);
+  aspect-ratio: 2 / 3;
+  background: var(--space);
+  border: 2px solid var(--card-edge);
+  border-radius: 5px;
+  box-shadow: var(--lift);
+  display: grid;
+  place-items: center;
+}
+
+.planet__art {
+  width: 72%;
+  height: auto;
 }

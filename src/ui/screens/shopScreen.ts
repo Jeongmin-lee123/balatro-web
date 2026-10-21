@@ -1,35 +1,46 @@
 import { blindName, nextBlind, targetScore } from "../../game/blinds";
-import { JOKERS, RULES } from "../../game/rules";
-import type { RunState } from "../../game/types";
+import { JOKERS, PLANETS, RULES } from "../../game/rules";
+import { canBuy } from "../../game/run";
+import { offerPrice } from "../../game/shop";
+import type { RunState, ShopOffer } from "../../game/types";
 import { button, esc } from "../dom";
 import { jokerCard } from "../jokerView";
+import { planetCard } from "../planetView";
+
+function blockedReason(state: RunState, offer: ShopOffer): string {
+  if (offer.kind === "joker" && state.jokers.length >= RULES.jokerSlots) return "조커 칸이 가득 찼습니다";
+  if (state.money < offerPrice(offer)) return "돈이 모자랍니다";
+  return "";
+}
+
+function offerCard(state: RunState, offer: ShopOffer | null, slot: number): string {
+  if (!offer) return `<div class="joker-slot joker-slot--sold"><span>판매됨</span></div>`;
+  const reason = canBuy(state, slot) ? "" : blockedReason(state, offer);
+  const footer =
+    button({
+      action: { type: "buy", slot },
+      label: `사기 $${offerPrice(offer)}`,
+      className: "btn btn--small btn--money",
+      disabled: reason !== "",
+      key: `buy-${slot}`,
+    }) + (reason ? `<p class="joker__reason">${reason}</p>` : "");
+
+  if (offer.kind === "planet") {
+    const planet = PLANETS[offer.id];
+    return planet ? planetCard(planet, state.handLevels[planet.hand], footer) : "";
+  }
+  const joker = JOKERS[offer.id];
+  return joker ? jokerCard(joker, footer) : "";
+}
 
 export function renderShopScreen(state: RunState): string {
   const shop = state.shop;
   if (!shop) return "";
-  const full = state.jokers.length >= RULES.jokerSlots;
-
-  const offers = shop.offers
-    .map((defId, slot) => {
-      const def = defId ? JOKERS[defId] : undefined;
-      if (!def) return `<div class="joker-slot joker-slot--sold"><span>판매됨</span></div>`;
-      const reason = full ? "조커 칸이 가득 찼습니다" : state.money < def.price ? "돈이 모자랍니다" : "";
-      const buy = button({
-        action: { type: "buy", slot },
-        label: `사기 $${def.price}`,
-        className: "btn btn--small btn--money",
-        disabled: reason !== "",
-        key: `buy-${slot}`,
-      });
-      return jokerCard(def, `${buy}${reason ? `<p class="joker__reason">${reason}</p>` : ""}`);
-    })
-    .join("");
-
   const next = nextBlind(state.ante, state.blindIndex);
   return `
     <section class="panel shop" aria-labelledby="shop-title">
       <h2 id="shop-title" class="panel__title">상점</h2>
-      <div class="shop__offers">${offers}</div>
+      <div class="shop__offers">${shop.offers.map((offer, slot) => offerCard(state, offer, slot)).join("")}</div>
       <div class="shop__actions">
         ${button({
           action: { type: "reroll" },

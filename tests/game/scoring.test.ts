@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { JOKERS } from "../../src/game/rules";
-import { cardChips, scoreHand } from "../../src/game/scoring";
-import type { JokerDef } from "../../src/game/types";
+import { HAND_TYPES, JOKERS } from "../../src/game/rules";
+import { cardChips, handBase, scoreHand } from "../../src/game/scoring";
+import type { HandLevels, JokerDef } from "../../src/game/types";
 import { cards } from "./cards";
 
 const jokers = (...idList: string[]): JokerDef[] => idList.map((id) => JOKERS[id] as JokerDef);
@@ -44,6 +44,13 @@ describe("scoreHand", () => {
   it("계산 과정은 기본값, 카드와 카드 반응 조커, 독립 조커 순서", () => {
     const result = scoreHand(cards("Kh Kd"), jokers("joker", "greedy_joker"));
     expect(result.steps.map((s) => s.source)).toEqual(["원 페어", "K 하트", "K 다이아몬드", "탐욕스러운 조커", "조커"]);
+  });
+
+  it("족보 레벨이 오르면 기본값에 레벨업 값을 더한다", () => {
+    expect(handBase("pair", 1)).toEqual({ chips: 10, mult: 2 });
+    expect(handBase("pair", 3)).toEqual({ chips: 10 + 15 * 2, mult: 2 + 1 * 2 });
+    const levels = { ...Object.fromEntries(HAND_TYPES.map((t) => [t, 1])), pair: 3 } as HandLevels;
+    expect(scoreHand(cards("Kh Kc"), [], levels)).toMatchObject({ chips: 40 + 20, mult: 4 });
   });
 
   it("로열 플러시는 이름만 다르고 스트레이트 플러시 값을 쓴다", () => {

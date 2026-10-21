@@ -54,6 +54,7 @@ src/
 │  ├─ cardView.ts        트럼프 카드 SVG
 │  ├─ faceArt.ts         얼굴 카드 도트 SVG
 │  ├─ jokerView.ts       조커 카드 (그림 + 설명)
+│  ├─ planetView.ts      행성 카드 (색 하나로 만드는 도트 행성)
 │  ├─ sidebar.ts         블라인드, 점수, 핸드/버리기 횟수, 돈, 앤티
 │  └─ screens/
 │     ├─ roundScreen.ts  손패 선택, 플레이, 버리기, 정렬, 점수 계산 과정
@@ -73,6 +74,7 @@ data/
 ├─ blinds.json           앤티별 기본 점수, 블라인드 배수와 보상
 ├─ rules.json            손패 수, 핸드, 버리기, 조커 칸, 이자, 리롤 값
 ├─ jokers.json           조커 목록 (id, 이름, 가격, 설명, 효과 종류와 값)
+├─ planets.json          행성 9종 (id, 이름, 올리는 족보, 가격, 그림 색)
 └─ faces.json            J, Q, K 도트 격자와 팔레트
 public/
 └─ jokers/<id>.png       처리된 조커 그림 (256 x 384, 16색, 배경 그대로)
@@ -141,10 +143,11 @@ interface RunState {
   blindIndex: 0 | 1 | 2;        // 스몰, 빅, 보스
   money: number;
   jokers: OwnedJoker[];
+  handLevels: Record<HandType, number>;   // 족보 레벨, 처음 모두 1 (F10)
   round: { drawPile: Card[]; hand: Card[]; selected: string[]; handsLeft: number; discardsLeft: number;
            score: number; lastScore: ScoreResult | null; sortBy: "rank" | "suit" };
   cashOut: { lines: { label: string; amount: number }[]; total: number } | null;
-  shop: { offers: (string | null)[]; rerollCost: number } | null;   // 조커 defId, 산 칸은 null
+  shop: { offers: ({ kind: "joker" | "planet"; id: string } | null)[]; rerollCost: number } | null;   // 산 칸은 null
   stats: { bestHand: number; handsPlayed: number };
 }
 
@@ -167,22 +170,22 @@ type Action =
 | 파일 | 공개 함수 |
 |---|---|
 | rng.ts | `nextRandom(state): [value, nextState]`, `shuffle(items, state): [items, nextState]` |
-| rules.ts | `HANDS`, `BLINDS`, `RULES`, `JOKERS`(id로 찾기), `JOKER_IDS`, `ANTE_COUNT` |
+| rules.ts | `HANDS`, `HAND_TYPES`, `BLINDS`, `RULES`, `JOKERS`(id로 찾기), `JOKER_IDS`, `PLANETS`, `PLANET_IDS`, `ANTE_COUNT` |
 | deck.ts | `SUITS`, `SUIT_NAMES`, `createDeck(): Card[]`, `drawCards(pile, count): { drawn, rest }`, `sortHand(cards, by): Card[]`, `rankLabel(rank)`, `cardLabel(card)` |
 | handEval.ts | `evaluateHand(cards): HandResult` |
-| scoring.ts | `scoreHand(cards, jokerDefs): ScoreResult`, `cardChips(card)`, `handName(hand)` |
+| scoring.ts | `scoreHand(cards, jokerDefs, levels?): ScoreResult`, `handBase(type, level)`, `cardChips(card)`, `handName(hand)` |
 | jokers.ts | `onCardScored(effect, card): JokerGain \| null`, `onIndependent(effect, ctx): JokerGain \| null` |
 | blinds.ts | `targetScore(ante, blindIndex): number`, `blindReward(ante, blindIndex): number`, `blindName(blindIndex): string` |
 | economy.ts | `cashOutLines({ ante, blindIndex, handsLeft, money }): CashOut`, `interest(money): number` |
-| shop.ts | `rollOffers(rngState, count): [defIds, nextState]`, `sellValue(paid): number` |
-| run.ts | `newRun(seed): RunState`, `apply(state, action): RunState`, `currentTarget(state)`, `jokerDefs(owned)` |
+| shop.ts | `rollOffers(rngState, count): [ShopOffer[], nextState]`, `offerPrice(offer)`, `sellValue(paid): number` |
+| run.ts | `newRun(seed): RunState`, `apply(state, action): RunState`, `currentTarget(state)`, `jokerDefs(owned)`, `canBuy(state, slot)` |
 | records.ts | `loadRecords(): Records`, `saveRun(state): Records` |
 
 ### 4.1 점수 계산 순서 (scoring.ts)
 
 원작 순서를 따른다. 조커 순서가 결과를 바꾸므로 반드시 이 순서를 지킨다.
 
-1. 족보 기본 칩, 기본 배수
+1. 족보 기본 칩, 기본 배수 (레벨이 오른 만큼 data/hands.json의 레벨업 값을 더한다)
 2. 점수 카드를 왼쪽부터 하나씩: 카드 칩을 더하고, 그 카드에 반응하는 조커(`onCardScored`)를 왼쪽 조커부터 적용
 3. 조커를 왼쪽부터 하나씩 독립 효과(`onIndependent`) 적용
 4. 총점 = 칩 x 배수 (내림)
@@ -309,3 +312,4 @@ type Action =
 | D-007 | 2026-10-21 | 버리기 기본값 3 (레드 덱 보너스 없음) | 덱 선택을 만들지 않으므로 원작 기본 규칙을 쓴다 |
 | D-008 | 2026-10-21 | 기본 브랜치 이름을 main으로 | Vercel, GitHub 기본값과 맞춘다 |
 | D-009 | 2026-10-21 | 조커 그림은 배경을 지우지 않고 2:3 비율 그대로 쓴다 | 원본 배경(240,229,205)과 얼굴색(245,235,217)이 거의 같아 배경을 지우면 얼굴도 지워진다. 원본 비율이 2:3이라 자를 필요도 없다 |
+| D-010 | 2026-10-21 | 행성 카드는 사는 즉시 족보 레벨을 올린다. 소모품 칸은 만들지 않는다 | 원작은 소모품 칸에 보관했다가 쓰지만, 타로(F14)가 없는 지금은 보관할 이유가 없다. F14를 만들 때 소모품 칸을 함께 도입한다 |
