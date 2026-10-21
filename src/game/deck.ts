@@ -5,6 +5,23 @@ export const SUITS: readonly Suit[] = ["spades", "hearts", "clubs", "diamonds"];
 
 const RANKS: readonly Rank[] = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
 
+export const SUIT_NAMES: Record<Suit, string> = {
+  spades: "스페이드",
+  hearts: "하트",
+  clubs: "클로버",
+  diamonds: "다이아몬드",
+};
+
+/** 카드 귀퉁이에 적는 글자 */
+export function rankLabel(rank: Rank): string {
+  return ({ 11: "J", 12: "Q", 13: "K", 14: "A" } as Partial<Record<Rank, string>>)[rank] ?? String(rank);
+}
+
+/** 예: "K 하트" */
+export function cardLabel(card: Card): string {
+  return `${rankLabel(card.rank)} ${SUIT_NAMES[card.suit]}`;
+}
+
 export function createDeck(): Card[] {
   return SUITS.flatMap((suit) => RANKS.map((rank) => ({ id: `${suit}-${rank}`, rank, suit })));
 }

@@ -23,7 +23,7 @@
 |---|---|---|---|---|---|
 | T-005 | types.ts, rules.ts, data/*.json, rng.ts, deck.ts | F1 | AI | 완료 | T-003 |
 | T-006 | handEval.ts 족보 판정 | F2 | AI | 완료 | T-005 |
-| T-007 | jokers.ts, scoring.ts 점수 계산 | F3, F8 | AI | 대기 | T-006 |
+| T-007 | jokers.ts, scoring.ts 점수 계산 | F3, F8 | AI | 완료 | T-006 |
 | T-008 | blinds.ts, economy.ts 목표 점수와 정산 | F5, F6 | AI | 대기 | T-005 |
 | T-009 | shop.ts 진열, 구매, 리롤, 판매 | F7, F8 | AI | 대기 | T-005 |
 | T-010 | run.ts 판 진행 (라운드, 정산, 상점, 승패) | F4, F5 | AI | 대기 | T-007, T-008, T-009 |

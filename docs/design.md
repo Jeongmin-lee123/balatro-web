@@ -165,10 +165,11 @@ type Action =
 | 파일 | 공개 함수 |
 |---|---|
 | rng.ts | `nextRandom(state): [value, nextState]`, `shuffle(items, state): [items, nextState]` |
-| deck.ts | `createDeck(): Card[]`, `drawCards(pile, count): { drawn, rest }`, `sortHand(cards, by): Card[]` |
+| rules.ts | `HANDS`, `BLINDS`, `RULES`, `JOKERS`(id로 찾기), `JOKER_IDS`, `ANTE_COUNT` |
+| deck.ts | `SUITS`, `SUIT_NAMES`, `createDeck(): Card[]`, `drawCards(pile, count): { drawn, rest }`, `sortHand(cards, by): Card[]`, `rankLabel(rank)`, `cardLabel(card)` |
 | handEval.ts | `evaluateHand(cards): HandResult` |
-| scoring.ts | `scoreHand(cards, jokers, defs): ScoreResult` |
-| jokers.ts | `onCardScored(effect, card, ctx): Partial<ScoreStep> \| null`, `onIndependent(effect, ctx): Partial<ScoreStep> \| null` |
+| scoring.ts | `scoreHand(cards, jokerDefs): ScoreResult`, `cardChips(card)`, `handName(hand)` |
+| jokers.ts | `onCardScored(effect, card): JokerGain \| null`, `onIndependent(effect, ctx): JokerGain \| null` |
 | blinds.ts | `targetScore(ante, blindIndex): number`, `blindReward(ante, blindIndex): number`, `blindName(blindIndex): string` |
 | economy.ts | `cashOutLines(state): { lines, total }`, `interest(money): number` |
 | shop.ts | `rollOffers(rngState, count): [defIds, nextState]`, `sellValue(paid): number` |

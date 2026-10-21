@@ -1,21 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { evaluateHand } from "../../src/game/handEval";
-import type { Card, Suit } from "../../src/game/types";
-
-const SUIT_CODES: Record<string, Suit> = { s: "spades", h: "hearts", c: "clubs", d: "diamonds" };
-const RANK_CODES: Record<string, Card["rank"]> = { T: 10, J: 11, Q: 12, K: 13, A: 14 };
-
-/** "Ah Kd 5s" 같은 짧은 표기로 카드를 만든다 */
-function cards(text: string): Card[] {
-  return text.split(" ").map((code) => {
-    const rankCode = code.slice(0, -1);
-    const suit = SUIT_CODES[code.slice(-1)] as Suit;
-    const rank = RANK_CODES[rankCode] ?? (Number(rankCode) as Card["rank"]);
-    return { id: `${suit}-${rank}`, rank, suit };
-  });
-}
-
-const ids = (list: Card[]) => list.map((c) => c.id);
+import { cards, ids } from "./cards";
 
 describe("evaluateHand: 족보 판정", () => {
   it.each([
