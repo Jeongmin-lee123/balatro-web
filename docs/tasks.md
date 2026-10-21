@@ -33,9 +33,9 @@
 | 번호 | 작업 | 기능 | 담당 | 상태 | 선행 |
 |---|---|---|---|---|---|
 | T-011 | cardView.ts, faceArt.ts, data/faces.json | F1 | AI | 완료 | T-005 |
-| T-012 | 테이블 배치, sidebar.ts, roundScreen.ts | F1, F3, F4 | AI | 대기 | T-010, T-011 |
-| T-013 | cashOutScreen.ts, shopScreen.ts, jokerView.ts | F6, F7, F8 | AI | 대기 | T-012 |
-| T-014 | endScreen.ts, storage/records.ts | F5, F9 | AI | 대기 | T-012 |
+| T-012 | 테이블 배치, sidebar.ts, roundScreen.ts | F1, F3, F4 | AI | 완료 | T-010, T-011 |
+| T-013 | cashOutScreen.ts, shopScreen.ts, jokerView.ts | F6, F7, F8 | AI | 진행 중 | T-012 |
+| T-014 | endScreen.ts, storage/records.ts | F5, F9 | AI | 진행 중 | T-012 |
 | T-015 | 조커 그림 변환 스크립트, public/jokers 생성 | F8 | AI | 대기 | T-013 |
 | T-016 | 조커 그림 나머지 생성 (5.3 표에서 "없음"인 것) | F8 | 사람 | 완료 | - |
 | T-017 | 휴대폰 화면 점검, 키보드 조작, README 실행 방법 | N8 | AI | 대기 | T-014 |

@@ -17,6 +17,10 @@
   --mult: #d6452f;
   --money: #e1b03f;
   --danger: #d6452f;
+  --blind-small: #2f6d9e;
+  --blind-big: #b8742a;
+  --blind-boss: #9e2f2a;
+  --select: #e1b03f;
 
   /* 갈무리는 정해진 크기의 배수에서 가장 선명하다. Galmuri14는 15px, Galmuri11은 12px 기준. */
   --font-body: "Galmuri14", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;

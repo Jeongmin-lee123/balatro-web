@@ -17,6 +17,11 @@ export function targetScore(ante: number, blindIndex: BlindIndex): number {
   return Math.floor(base * blindInfo(blindIndex).multiplier);
 }
 
+/** 스몰 -> 빅 -> 보스 -> 다음 안테 스몰 */
+export function nextBlind(ante: number, blindIndex: BlindIndex): { ante: number; blindIndex: BlindIndex } {
+  return blindIndex === 2 ? { ante: ante + 1, blindIndex: 0 } : { ante, blindIndex: (blindIndex + 1) as BlindIndex };
+}
+
 /** 마지막 안테의 보스는 보상이 따로 정해져 있다 */
 export function blindReward(ante: number, blindIndex: BlindIndex): number {
   if (blindIndex === 2 && ante === ANTE_COUNT) return BLINDS.finalBossReward;

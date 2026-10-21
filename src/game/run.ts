@@ -1,13 +1,13 @@
 // 한 판의 상태 전이. 판 상태는 apply(state, action)으로만 바꾼다. (design.md D-006)
 // 허용되지 않는 행동은 받은 상태를 그대로 돌려준다.
-import { targetScore } from "./blinds";
+import { nextBlind, targetScore } from "./blinds";
 import { createDeck, drawCards, sortHand } from "./deck";
 import { cashOutLines } from "./economy";
 import { nextRandom, shuffle } from "./rng";
 import { ANTE_COUNT, JOKERS, RULES } from "./rules";
 import { scoreHand } from "./scoring";
 import { rollOffers, sellValue } from "./shop";
-import type { Action, BlindIndex, JokerDef, OwnedJoker, RoundState, RunState, SortBy } from "./types";
+import type { Action, JokerDef, OwnedJoker, RoundState, RunState, SortBy } from "./types";
 
 function dealRound(rngState: number, sortBy: SortBy): { round: RoundState; rngState: number } {
   const [deck, next] = shuffle(createDeck(), rngState);
@@ -153,9 +153,7 @@ function moveJoker(state: RunState, uid: string, to: number): RunState {
 }
 
 function nextRound(state: RunState): RunState {
-  const lastBlind = state.blindIndex === 2;
-  const ante = lastBlind ? state.ante + 1 : state.ante;
-  const blindIndex = (lastBlind ? 0 : state.blindIndex + 1) as BlindIndex;
+  const { ante, blindIndex } = nextBlind(state.ante, state.blindIndex);
   const { round, rngState } = dealRound(state.rngState, state.round.sortBy);
   return { ...state, phase: "round", ante, blindIndex, round, rngState, shop: null };
 }
