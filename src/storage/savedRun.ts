@@ -4,7 +4,7 @@ import type { RunState } from "../game/types";
 const STORAGE_KEY = "balatro-web/run";
 
 /** RunState 모양을 바꾸면 올린다. 버전이 다른 저장은 버린다 */
-export const SAVE_VERSION = 6;
+export const SAVE_VERSION = 7;
 
 interface SaveFile {
   version: number;

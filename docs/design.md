@@ -122,7 +122,7 @@ ui/ 는 data/ 를 직접 읽지 않는다 (faces.json 제외, ui/faceArt.ts만 �
 type Suit = "spades" | "hearts" | "clubs" | "diamonds";
 type Rank = 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14; // 11=J, 12=Q, 13=K, 14=A
 
-interface Card { id: string; rank: Rank; suit: Suit; enhancement?: Enhancement }   // id 예: "hearts-13", 강화는 F15
+interface Card { id: string; rank: Rank; suit: Suit; enhancement?: Enhancement; seal?: Seal }   // id 예: "hearts-13", 강화와 봉인은 F15
 
 type HandType =
   | "high_card" | "pair" | "two_pair" | "three_of_a_kind" | "straight"
@@ -202,7 +202,7 @@ type Action =
 | editions.ts | `editionDef(id)`, `editionFromRoll(value)`, `rollJokerEdition(rngState)`, `jokerSlots(jokers)`, `editionBefore(id, source)`, `editionAfter(id, source)` |
 | inventory.ts | `hasJokerRoom(state, edition?)`, `addJoker(state, defId, paid, edition?)`, `usePlanet(levels, planetId)` |
 | packs.ts | `packDef(id)`, `packPrice(offer)`, `rollPacks(rngState, count)`, `openPack(state, packId)`, `canPick(state, index)`, `pickFromPack(state, index)` |
-| tarots.ts | `tarotDef(id)`, `targetRange(effect)`, `canUseTarot(state, index)`, `useTarot(state, index)` |
+| tarots.ts | `tarotDef(id)`, `targetRange(effect)`, `canUseTarot(state, index)`, `useTarot(state, index)`, `addRandomTarots(state, count)` |
 | tags.ts | `tagDef(id)`, `pickBlindTags(rngState, ante)`, `instantMoney(effect, state)`, `takeTags(held, kind)` |
 | savedRun.ts | `loadSavedRun(): RunState | null`, `storeRun(state)`, `clearSavedRun()`, `SAVE_VERSION` |
 
@@ -211,7 +211,7 @@ type Action =
 원작 순서를 따른다. 조커 순서가 결과를 바꾸므로 반드시 이 순서를 지킨다.
 
 1. 족보 기본 칩, 기본 배수 (레벨이 오른 만큼 data/hands.json의 레벨업 값을 더한다)
-2. 점수 카드를 왼쪽부터 하나씩 (보스가 무효로 만든 카드는 칩도 조커 반응도 없이 넘어간다): 카드 칩을 더하고, 그 카드에 반응하는 조커(`onCardScored`)를 왼쪽 조커부터 적용
+2. 점수 카드를 왼쪽부터 하나씩 (보스가 무효로 만든 카드는 칩도 조커 반응도 없이 넘어간다, 빨강 봉인은 이 단계를 한 번 더): 카드 칩, 강화, 금 봉인을 더하고, 그 카드에 반응하는 조커(`onCardScored`)를 왼쪽 조커부터 적용
 3. 손에 들고 있는 강철 카드마다 배수 x1.5
 4. 조커를 왼쪽부터 하나씩: 에디션 호일, 홀로그래픽 -> 독립 효과(`onIndependent`) -> 에디션 폴리크롬
 5. 단계를 위에서부터 차례로 누적한다: 칩과 배수는 더하고, xMult가 있으면 그때까지의 배수에 곱한다. 총점 = 칩 x 배수 (내림)

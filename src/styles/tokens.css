@@ -43,6 +43,10 @@
   --pack-planet: #1a2236;
   --pack-card: #6b4a2a;
   --pack-joker: #8e2a22;
+  --seal-red: #d6452f;
+  --seal-blue: #2f7fd0;
+  --seal-gold: #e1b03f;
+  --seal-purple: #8a5cc4;
 
   /* 갈무리는 정해진 크기의 배수에서 가장 선명하다. Galmuri14는 15px, Galmuri11은 12px 기준. */
   --font-body: "Galmuri14", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;

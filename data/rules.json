@@ -18,5 +18,6 @@
   },
   "consumableSlots": 2,
   "packSlots": 2,
-  "standardEnhanceChance": 0.4
+  "standardEnhanceChance": 0.4,
+  "standardSealChance": 0.2
 }

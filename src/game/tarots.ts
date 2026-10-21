@@ -110,11 +110,8 @@ function applyEffect(state: RunState, effect: TarotEffect): RunState {
       const total = state.jokers.reduce((sum, joker) => sum + sellValue(joker.paid), 0);
       return { ...state, money: state.money + Math.min(total, effect.max) };
     }
-    case "create_tarots": {
-      const room = RULES.consumableSlots - state.consumables.length;
-      const [ids, rngState] = randomIds(TAROT_IDS, Math.min(effect.count, room), state.rngState);
-      return { ...state, rngState, consumables: [...state.consumables, ...ids] };
-    }
+    case "create_tarots":
+      return addRandomTarots(state, effect.count);
     case "create_joker": {
       const [[id], rngState] = randomIds(JOKER_IDS, 1, state.rngState);
       const def = JOKERS[id as string];
@@ -132,6 +129,14 @@ function applyEffect(state: RunState, effect: TarotEffect): RunState {
       return { ...state, rngState, jokers: state.jokers.map((joker) => (joker.uid === target.uid ? { ...joker, edition } : joker)) };
     }
   }
+}
+
+/** 소모품 칸이 빈 만큼(최대 count장) 무작위 타로를 만든다. 황제 타로와 보라 봉인이 쓴다 */
+export function addRandomTarots(state: RunState, count: number): RunState {
+  const room = RULES.consumableSlots - state.consumables.length;
+  if (room <= 0 || count <= 0) return state;
+  const [ids, rngState] = randomIds(TAROT_IDS, Math.min(count, room), state.rngState);
+  return { ...state, rngState, consumables: [...state.consumables, ...ids] };
 }
 
 /** 타로를 쓰고 소모품 칸에서 뺀다. 효과는 칸을 뺀 뒤에 적용해 빈 칸을 셀 수 있게 한다 */

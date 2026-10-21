@@ -4,10 +4,11 @@ import { editionFromRoll } from "./editions";
 import { addJoker, hasJokerRoom, usePlanet } from "./inventory";
 import { nextRandom } from "./rng";
 import { JOKER_IDS, JOKERS, PACK_LIST, PACKS, PLANET_IDS, RULES, TAROT_IDS } from "./rules";
-import type { Card, Enhancement, OpenPack, PackChoice, PackDef, PackOffer, Rank, RunState } from "./types";
+import type { Card, Enhancement, OpenPack, PackChoice, PackDef, PackOffer, Rank, RunState, Seal } from "./types";
 
 const ENHANCEMENTS: readonly Enhancement[] = ["bonus", "mult", "wild", "glass", "steel", "stone", "gold", "lucky"];
 const RANKS: readonly Rank[] = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+const SEALS: readonly Seal[] = ["red", "blue", "gold", "purple"];
 
 export function packDef(id: string): PackDef {
   const pack = PACKS[id];
@@ -48,12 +49,13 @@ export function rollPacks(rngState: number, count: number): [PackOffer[], number
   return [offers, random.state()];
 }
 
-/** 스탠다드 팩의 카드 한 장: 무늬와 숫자는 무작위, 일정 확률로 강화 */
+/** 스탠다드 팩의 카드 한 장: 무늬와 숫자는 무작위, 일정 확률로 강화와 봉인 */
 function standardCard(random: () => number, serial: number): Card {
   const suit = pickFrom(SUITS, random());
   const rank = pickFrom(RANKS, random());
   const enhancement = random() < RULES.standardEnhanceChance ? pickFrom(ENHANCEMENTS, random()) : undefined;
-  return { id: `${suit}-${rank}-n${serial}`, rank, suit, ...(enhancement ? { enhancement } : {}) };
+  const seal = random() < RULES.standardSealChance ? pickFrom(SEALS, random()) : undefined;
+  return { id: `${suit}-${rank}-n${serial}`, rank, suit, ...(enhancement ? { enhancement } : {}), ...(seal ? { seal } : {}) };
 }
 
 /** 팩을 연다. 카드 id에 쓰는 번호(nextUid)도 함께 돌려준다 */

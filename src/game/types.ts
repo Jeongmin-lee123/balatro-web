@@ -8,12 +8,16 @@ export type Rank = 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14;
 /** 카드 강화. 없으면 일반 카드 (F15) */
 export type Enhancement = "bonus" | "mult" | "wild" | "glass" | "steel" | "stone" | "gold" | "lucky";
 
+/** 카드 봉인 (F15) */
+export type Seal = "red" | "blue" | "gold" | "purple";
+
 export interface Card {
   /** 처음 만든 이름. 예: "hearts-13". 무늬나 숫자가 바뀌어도 그대로 둔다 (design.md D-014) */
   id: string;
   rank: Rank;
   suit: Suit;
   enhancement?: Enhancement;
+  seal?: Seal;
 }
 
 export type SortBy = "rank" | "suit";

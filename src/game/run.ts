@@ -12,7 +12,7 @@ import { ANTE_COUNT, HAND_TYPES, JOKERS, RULES } from "./rules";
 import { scoreHand } from "./scoring";
 import { offerPrice, rollOffers, sellValue } from "./shop";
 import { instantMoney, pickBlindTags, tagDef, takeTags } from "./tags";
-import { tarotDef, useTarot } from "./tarots";
+import { addRandomTarots, tarotDef, useTarot } from "./tarots";
 import type {
   Action,
   BlindIndex,
@@ -192,7 +192,11 @@ function winRound(state: RunState, held: readonly Card[]): RunState {
   if (gold > 0) bonus.push({ label: `금 카드 ${gold}장`, amount: gold * GOLD_CARD_MONEY });
   const cashOut: CashOut = { lines: [...base.lines, ...bonus], total: base.total + bonus.reduce((sum, line) => sum + line.amount, 0) };
   const stats = { ...state.stats, unusedDiscards: state.stats.unusedDiscards + state.round.discardsLeft };
-  return { ...state, phase: "cash_out", cashOut, tags: rest, stats };
+  // 파랑 봉인: 손에 남은 카드마다 마지막으로 낸 족보 레벨 +1 (원작은 행성 카드, D-010에 따라 바로 레벨업)
+  const lastHand = state.round.lastScore?.hand.type;
+  const blue = held.filter((card) => card.seal === "blue").length;
+  const handLevels = lastHand && blue > 0 ? { ...state.handLevels, [lastHand]: state.handLevels[lastHand] + blue } : state.handLevels;
+  return { ...state, phase: "cash_out", cashOut, tags: rest, stats, handLevels };
 }
 
 function play(state: RunState): RunState {
@@ -240,10 +244,12 @@ function play(state: RunState): RunState {
   return handsLeft === 0 ? { ...next, phase: "lost" } : next;
 }
 
+/** 버리기. 보라 봉인 카드는 버릴 때 소모품 칸이 빈 만큼 타로를 만든다 */
 function discard(state: RunState): RunState {
   if (state.round.selected.length === 0 || state.round.discardsLeft === 0) return state;
-  const { round } = takeSelected(state.round, state.rngState);
-  return { ...state, round: { ...round, discardsLeft: state.round.discardsLeft - 1 } };
+  const { taken, round } = takeSelected(state.round, state.rngState);
+  const discarded: RunState = { ...state, round: { ...round, discardsLeft: state.round.discardsLeft - 1 } };
+  return addRandomTarots(discarded, taken.filter((card) => card.seal === "purple").length);
 }
 
 /** 정산을 받고 상점으로. 쿠폰 태그는 처음 진열과 팩을 무료로, 주사위 태그는 다시 굴리기를 $0부터 */

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { apply, canBuy, canPlay, currentTarget, newRun } from "../../src/game/run";
 import { JOKERS, RULES } from "../../src/game/rules";
 import type { Action, Card, RunState, ShopOffer } from "../../src/game/types";
-import { cards, enhanced } from "./cards";
+import { cards, enhanced, sealed } from "./cards";
 
 /** 손패를 원하는 카드로 바꾸고, 블라인드 선택 화면이면 라운드로 들어간 상태 */
 function withHand(state: RunState, text: string, overrides: Partial<RunState["round"]> = {}): RunState {
@@ -359,6 +359,21 @@ describe("카드 강화와 판 진행", () => {
     expect(broke).not.toBeNull();
     expect(broke?.deck.some((card) => card.id === "hearts-13")).toBe(false);
     expect(broke?.deck).toHaveLength(51);
+  });
+
+  it("파랑 봉인: 라운드를 이길 때 손에 있으면 마지막으로 낸 족보 레벨 +1", () => {
+    const hand = [...cards("Ah Kh Qh Jh Th 2c 3c"), sealed("4c", "blue")];
+    const won = run(roundWith(hand, { score: 299 }), ...select("hearts-14"), { type: "play" });
+    expect(won.phase).toBe("cash_out");
+    expect(won.handLevels.high_card).toBe(2);
+  });
+
+  it("보라 봉인: 버리면 빈 소모품 칸만큼 타로가 생긴다", () => {
+    const hand = [sealed("2c", "purple"), sealed("3c", "purple"), sealed("4c", "purple"), ...cards("Ah Kh Qh Jh Th")];
+    const state = { ...roundWith(hand), consumables: ["star"] };
+    const after = run(state, ...select("clubs-2", "clubs-3", "clubs-4"), { type: "discard" });
+    expect(after.consumables).toHaveLength(RULES.consumableSlots);
+    expect(after.consumables[0]).toBe("star");
   });
 
   it("행운 카드로 번 돈은 바로 돈에 더해진다", () => {

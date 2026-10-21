@@ -40,6 +40,11 @@ export interface ScoreRules {
 const LUCKY_MULT_CHANCE = 1 / 5;
 const LUCKY_MONEY_CHANCE = 1 / 15;
 const GLASS_BREAK_CHANCE = 1 / 4;
+const GOLD_SEAL_MONEY = 3;
+
+function triggerCount(card: Card): number {
+  return card.seal === "red" ? 2 : 1;
+}
 
 /** 원작처럼 절반을 반올림하고 최소 1 */
 function halve(value: number): number {
@@ -90,20 +95,29 @@ export function scoreHand(cards: readonly Card[], jokers: readonly JokerDef[], l
       steps.push({ source: label, chips: 0, mult: 0, note: "무효" });
       continue;
     }
-    steps.push({ source: label, chips: card.enhancement === "stone" ? 50 : cardChips(card), mult: 0, note: "" });
-    const enhanced = enhancementSteps(card, label, rules.random);
-    steps.push(...enhanced.steps);
-    money += enhanced.money;
-    for (const joker of jokers) {
-      const gain = onCardScored(joker.effect, card);
-      if (gain) steps.push({ source: joker.name, ...gain });
+    // 빨강 봉인은 이 카드의 단계를 한 번 더 발동한다
+    for (let trigger = 0; trigger < triggerCount(card); trigger++) {
+      const note = trigger > 0 ? "빨강 봉인, 다시" : "";
+      steps.push({ source: label, chips: card.enhancement === "stone" ? 50 : cardChips(card), mult: 0, note });
+      const enhanced = enhancementSteps(card, label, rules.random);
+      steps.push(...enhanced.steps);
+      money += enhanced.money;
+      if (card.seal === "gold") {
+        money += GOLD_SEAL_MONEY;
+        steps.push({ source: label, chips: 0, mult: 0, note: `금 봉인 ${GOLD_SEAL_MONEY}` });
+      }
+      for (const joker of jokers) {
+        const gain = onCardScored(joker.effect, card);
+        if (gain) steps.push({ source: joker.name, ...gain });
+      }
     }
     if (card.enhancement === "glass" && rules.random && rules.random() < GLASS_BREAK_CHANCE) shattered.push(card.id);
   }
 
   for (const card of rules.held ?? []) {
-    if (card.enhancement === "steel" && !rules.isDebuffed?.(card)) {
-      steps.push({ source: cardLabel(card), chips: 0, mult: 0, xMult: 1.5, note: "강철, 손에 있음" });
+    if (card.enhancement !== "steel" || rules.isDebuffed?.(card)) continue;
+    for (let trigger = 0; trigger < triggerCount(card); trigger++) {
+      steps.push({ source: cardLabel(card), chips: 0, mult: 0, xMult: 1.5, note: trigger > 0 ? "강철, 빨강 봉인 다시" : "강철, 손에 있음" });
     }
   }
 

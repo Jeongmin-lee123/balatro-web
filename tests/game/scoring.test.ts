@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { HAND_TYPES, JOKERS } from "../../src/game/rules";
 import { cardChips, handBase, scoreHand } from "../../src/game/scoring";
 import type { HandLevels, JokerDef } from "../../src/game/types";
-import { cards, enhanced } from "./cards";
+import { cards, enhanced, sealed } from "./cards";
 
 const jokers = (...idList: string[]): JokerDef[] => idList.map((id) => JOKERS[id] as JokerDef);
 
@@ -114,6 +114,22 @@ describe("scoreHand", () => {
     expect(always).toMatchObject({ money: 20, shattered: ["clubs-13"] });
     expect(always.mult).toBe((2 + 20) * 2);
     expect(scoreHand(hand, [], undefined, { random: () => 0.99 })).toMatchObject({ money: 0, shattered: [], mult: 4 });
+  });
+
+  it("빨강 봉인은 카드 칩, 강화, 카드 반응 조커를 한 번 더", () => {
+    const result = scoreHand([sealed("Kd", "red", "mult"), ...cards("Kc")], jokers("greedy_joker"));
+    expect(result.chips).toBe(10 + 10 * 2 + 10);
+    expect(result.mult).toBe(2 + (4 + 3) * 2);
+  });
+
+  it("금 봉인은 점수에 들어갈 때만 $3. 함께 낸 카드는 상관없고, 점수에 안 들어가면 0", () => {
+    expect(scoreHand([sealed("Kh", "gold"), ...cards("Kc")], []).money).toBe(3);
+    expect(scoreHand([sealed("Kh", "gold"), ...cards("Kc 2s")], []).money).toBe(3);
+    expect(scoreHand([...cards("Kh Kc"), sealed("2s", "gold")], []).money).toBe(0);
+  });
+
+  it("빨강 봉인 강철은 손에서 x1.5를 두 번", () => {
+    expect(scoreHand(cards("Kh Kc"), [], undefined, { held: [sealed("Qs", "red", "steel")] }).mult).toBe(2 * 1.5 * 1.5);
   });
 
   it("로열 플러시는 이름만 다르고 스트레이트 플러시 값을 쓴다", () => {

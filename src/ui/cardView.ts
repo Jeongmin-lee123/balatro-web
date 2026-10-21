@@ -1,6 +1,6 @@
 // 트럼프 카드 SVG. 무늬는 SVG 경로로 그린다. 유니코드 무늬 기호는 기기에 따라 이모지로 바뀌어 보인다.
 import { cardLabel, rankLabel } from "../game/deck";
-import type { Card, Enhancement, Rank, Suit } from "../game/types";
+import type { Card, Enhancement, Rank, Seal, Suit } from "../game/types";
 import { facePortrait, hasFace } from "./faceArt";
 
 const SUIT_SHAPES: Record<Suit, string> = {
@@ -74,9 +74,19 @@ const ENHANCEMENT_LOOK: Record<Enhancement, { fill: string; mark: string; name: 
   lucky: { fill: "var(--enh-lucky)", mark: "행운", name: "행운" },
 };
 
-/** 읽기 도구용 이름. 예: "K 하트, 유리" */
+/** 읽기 도구용 이름. 예: "K 하트, 유리, 빨강 봉인" */
 export function cardName(card: Card): string {
-  return card.enhancement && card.enhancement !== "stone" ? `${cardLabel(card)}, ${ENHANCEMENT_LOOK[card.enhancement].name}` : cardLabel(card);
+  const parts = [cardLabel(card)];
+  if (card.enhancement && card.enhancement !== "stone") parts.push(ENHANCEMENT_LOOK[card.enhancement].name);
+  if (card.seal) parts.push(SEAL_NAMES[card.seal]);
+  return parts.join(", ");
+}
+
+const SEAL_NAMES: Record<Seal, string> = { red: "빨강 봉인", blue: "파랑 봉인", gold: "금 봉인", purple: "보라 봉인" };
+
+/** 봉인은 오른쪽 위 빈 귀퉁이에 색 도장으로 */
+function sealMark(seal: Seal): string {
+  return `<rect x="80" y="6" width="13" height="13" rx="2" fill="var(--seal-${seal})" stroke="var(--suit-black)" stroke-width="1.5"/>`;
 }
 
 function enhancementMark(enhancement: Enhancement): string {
@@ -97,7 +107,7 @@ export function cardSvg(card: Card): string {
   const fill = card.enhancement ? ENHANCEMENT_LOOK[card.enhancement].fill : "var(--card)";
   const background = `<rect x="1" y="1" width="98" height="138" rx="7" fill="${fill}" stroke="var(--card-edge)" stroke-width="2"/>`;
   if (card.enhancement === "stone") {
-    return `<svg class="card-svg" viewBox="0 0 100 140" role="img" aria-label="${cardName(card)}">${background}${stoneFace()}</svg>`;
+    return `<svg class="card-svg" viewBox="0 0 100 140" role="img" aria-label="${cardName(card)}">${background}${stoneFace()}${card.seal ? sealMark(card.seal) : ""}</svg>`;
   }
   const corner = cardCorner(card);
   return (
@@ -107,6 +117,7 @@ export function cardSvg(card: Card): string {
     `<g transform="rotate(180 50 70)">${corner}</g>` +
     cardCenter(card) +
     (card.enhancement ? enhancementMark(card.enhancement) : "") +
+    (card.seal ? sealMark(card.seal) : "") +
     "</svg>"
   );
 }
