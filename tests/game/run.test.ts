@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { apply, canBuy, canPlay, currentTarget, newRun } from "../../src/game/run";
 import { JOKERS, RULES } from "../../src/game/rules";
 import type { Action, Card, RunState, ShopOffer } from "../../src/game/types";
-import { cards } from "./cards";
+import { cards, enhanced } from "./cards";
 
 /** 손패를 원하는 카드로 바꾸고, 블라인드 선택 화면이면 라운드로 들어간 상태 */
 function withHand(state: RunState, text: string, overrides: Partial<RunState["round"]> = {}): RunState {
@@ -320,6 +320,46 @@ describe("블라인드 선택과 태그", () => {
   it("라운드를 이기면 남은 버리기를 쓰레기 태그용으로 쌓는다", () => {
     const state = withHand(newRun(4), "Ah Kh Qh Jh Th 2c 3c 4c", { score: 299, discardsLeft: 2 });
     expect(run(state, ...select("hearts-14"), { type: "play" }).stats.unusedDiscards).toBe(2);
+  });
+});
+
+describe("카드 강화와 판 진행", () => {
+  /** 손패를 카드 배열로 직접 정하고, 덱에도 같은 카드를 넣은 라운드 상태 */
+  function roundWith(hand: Card[], overrides: Partial<RunState["round"]> = {}): RunState {
+    const base = started(12);
+    const others = base.deck.filter((card) => !hand.some((h) => h.id === card.id));
+    return { ...base, deck: [...hand, ...others], round: { ...base.round, hand, selected: [], ...overrides } };
+  }
+
+  it("라운드를 이길 때 손에 남은 금 카드는 장당 $3 정산 줄", () => {
+    const hand = [...cards("Ah Kh Qh Jh Th 2c"), enhanced("3c", "gold"), enhanced("4c", "gold")];
+    const won = run(roundWith(hand, { score: 299 }), ...select("hearts-14"), { type: "play" });
+    expect(won.cashOut?.lines.at(-1)).toEqual({ label: "금 카드 2장", amount: 6 });
+  });
+
+  it("깨진 유리 카드는 덱에서 사라진다. 같은 시드면 결과가 같다", () => {
+    let broke: RunState | null = null;
+    for (let seed = 0; seed < 40 && !broke; seed++) {
+      const base = { ...roundWith([enhanced("Kh", "glass"), ...cards("Kc 2s 3d 5c 7h 9s Jd")]), rngState: seed };
+      const played = run(base, ...select("hearts-13", "clubs-13"), { type: "play" });
+      if (played.round.lastScore?.shattered.length) broke = played;
+    }
+    expect(broke).not.toBeNull();
+    expect(broke?.deck.some((card) => card.id === "hearts-13")).toBe(false);
+    expect(broke?.deck).toHaveLength(51);
+  });
+
+  it("행운 카드로 번 돈은 바로 돈에 더해진다", () => {
+    let paid = false;
+    for (let seed = 0; seed < 200 && !paid; seed++) {
+      const base = { ...roundWith([enhanced("Kh", "lucky"), ...cards("Kc 2s 3d 5c 7h 9s Jd")]), rngState: seed, money: 0 };
+      const played = run(base, ...select("hearts-13", "clubs-13"), { type: "play" });
+      if (played.round.lastScore?.money) {
+        paid = true;
+        expect(played.money).toBe(20);
+      }
+    }
+    expect(paid).toBe(true);
   });
 });
 

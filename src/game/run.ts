@@ -179,11 +179,15 @@ function lowerPlayedLevel(levels: HandLevels, played: RoundState["hand"]): HandL
   return { ...levels, [type]: Math.max(1, levels[type] - 1) };
 }
 
-/** 라운드를 이겼을 때의 정산. 보스를 이기면 투자 태그가 발동한다 */
-function winRound(state: RunState): RunState {
+const GOLD_CARD_MONEY = 3;
+
+/** 라운드를 이겼을 때의 정산. 보스를 이기면 투자 태그가, 손에 남은 금 카드는 $3씩 발동한다 */
+function winRound(state: RunState, held: readonly Card[]): RunState {
   const base = cashOutLines({ ante: state.ante, blindIndex: state.blindIndex, handsLeft: state.round.handsLeft, money: state.money });
   const { taken, rest } = state.blindIndex === 2 ? takeTags(state.tags, "boss_bonus") : { taken: [], rest: state.tags };
   const bonus = taken.map((tag) => ({ label: tag.name, amount: tag.effect.kind === "boss_bonus" ? tag.effect.amount : 0 }));
+  const gold = held.filter((card) => card.enhancement === "gold").length;
+  if (gold > 0) bonus.push({ label: `금 카드 ${gold}장`, amount: gold * GOLD_CARD_MONEY });
   const cashOut: CashOut = { lines: [...base.lines, ...bonus], total: base.total + bonus.reduce((sum, line) => sum + line.amount, 0) };
   const stats = { ...state.stats, unusedDiscards: state.stats.unusedDiscards + state.round.discardsLeft };
   return { ...state, phase: "cash_out", cashOut, tags: rest, stats };
@@ -194,20 +198,41 @@ function play(state: RunState): RunState {
 
   const effect = activeBoss(state)?.effect ?? null;
   const hook = effect?.kind === "discard_random" ? effect.count : 0;
-  const { taken, round, rngState } = takeSelected(state.round, state.rngState, hook);
+  const held = state.round.hand.filter((card) => !state.round.selected.includes(card.id));
+  const taking = takeSelected(state.round, state.rngState, hook);
+  const { taken } = taking;
+  // 행운과 유리의 확률은 판 상태의 시드 난수를 이어 써서 재현할 수 있게 한다
+  let rngState = taking.rngState;
+  const random = () => {
+    const [value, next] = nextRandom(rngState);
+    rngState = next;
+    return value;
+  };
   const handLevels = effect?.kind === "lower_level" ? lowerPlayedLevel(state.handLevels, taken) : state.handLevels;
   const result = scoreHand(taken, jokerDefs(state.jokers), handLevels, {
     isDebuffed: effect ? (card) => isDebuffed(effect, card) : undefined,
     halveBase: effect?.kind === "halve_base",
+    held,
+    random,
   });
+  const round = taking.round;
+  const deck = result.shattered.length > 0 ? state.deck.filter((card) => !result.shattered.includes(card.id)) : state.deck;
   const score = state.round.score + result.total;
   const handsLeft = state.round.handsLeft - 1;
   const stats = { ...state.stats, bestHand: Math.max(state.stats.bestHand, result.total), handsPlayed: state.stats.handsPlayed + 1 };
-  const next: RunState = { ...state, rngState, stats, handLevels, round: { ...round, score, handsLeft, lastScore: result } };
+  const next: RunState = {
+    ...state,
+    rngState,
+    stats,
+    handLevels,
+    deck,
+    money: state.money + result.money,
+    round: { ...round, score, handsLeft, lastScore: result },
+  };
 
   if (score >= currentTarget(state)) {
     if (state.ante === ANTE_COUNT && state.blindIndex === 2) return { ...next, phase: "won" };
-    return winRound(next);
+    return winRound(next, held);
   }
   return handsLeft === 0 ? { ...next, phase: "lost" } : next;
 }

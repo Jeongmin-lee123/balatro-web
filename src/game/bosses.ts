@@ -25,6 +25,8 @@ export function pickBoss(rngState: number, ante: number, seen: readonly string[]
 
 /** 무효 카드는 족보 판정에는 들어가지만 칩을 더하지 않고, 카드에 반응하는 조커도 발동하지 않는다 */
 export function isDebuffed(effect: BossEffect, card: Card): boolean {
+  // 돌 카드는 숫자와 무늬가 없다. 와일드는 원래 무늬로 판정한다
+  if (card.enhancement === "stone") return false;
   if (effect.kind === "debuff_suit") return card.suit === effect.suit;
   if (effect.kind === "debuff_face") return card.rank >= 11 && card.rank <= 13;
   return false;

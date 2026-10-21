@@ -1,3 +1,4 @@
+import { SUITS } from "./deck";
 import type { Card, HandResult, HandType, Rank } from "./types";
 
 /** 높은 족보부터. 판정은 이 순서로 처음 맞는 것을 고른다 */
@@ -19,8 +20,9 @@ function groupByRank(cards: readonly Card[]): Map<Rank, Card[]> {
   return groups;
 }
 
+/** 와일드 카드는 어느 무늬로도 친다 */
 function isFlush(cards: readonly Card[]): boolean {
-  return cards.length === 5 && cards.every((card) => card.suit === cards[0]?.suit);
+  return cards.length === 5 && SUITS.some((suit) => cards.every((card) => card.suit === suit || card.enhancement === "wild"));
 }
 
 /** A는 10-J-Q-K-A의 높은 카드와 A-2-3-4-5의 낮은 카드 둘 다 된다. Q-K-A-2-3처럼 돌아가는 것은 안 된다 */
@@ -80,18 +82,23 @@ function scoringCardsFor(type: HandType, cards: readonly Card[], groups: Map<Ran
   }
 }
 
-/** 플레이한 카드 1~5장의 족보를 판정한다. 카드 순서는 바꾸지 않는다 */
+/**
+ * 플레이한 카드 1~5장의 족보를 판정한다. 카드 순서는 바꾸지 않는다.
+ * 돌 카드는 숫자와 무늬가 없어 판정에서 빠지지만, 점수 카드에는 항상 들어간다.
+ */
 export function evaluateHand(cards: readonly Card[]): HandResult {
   if (cards.length === 0 || cards.length > 5) throw new Error(`카드는 1~5장이어야 합니다: ${cards.length}장`);
 
-  const groups = groupByRank(cards);
-  const contains = containedHands(cards, groups);
+  const ranked = cards.filter((card) => card.enhancement !== "stone");
+  const groups = groupByRank(ranked);
+  const contains = ranked.length > 0 ? containedHands(ranked, groups) : new Set<HandType>(["high_card"]);
   const type = HAND_ORDER.find((hand) => contains.has(hand)) ?? "high_card";
-  const ranks = new Set(cards.map((card) => card.rank));
+  const ranks = new Set(ranked.map((card) => card.rank));
+  const scoring = new Set(ranked.length > 0 ? scoringCardsFor(type, ranked, groups) : []);
 
   return {
     type,
-    scoringCards: scoringCardsFor(type, cards, groups),
+    scoringCards: cards.filter((card) => scoring.has(card) || card.enhancement === "stone"),
     contains: HAND_ORDER.filter((hand) => contains.has(hand)),
     isRoyal: type === "straight_flush" && ranks.has(14) && ranks.has(10),
   };

@@ -15,7 +15,10 @@ export type JokerGain = Omit<ScoreStep, "source">;
 export function onCardScored(effect: JokerEffect, card: Card): JokerGain | null {
   switch (effect.kind) {
     case "suit_mult":
-      return card.suit === effect.suit ? { chips: 0, mult: effect.mult, note: `${SUIT_NAMES[effect.suit]} 카드` } : null;
+      // 와일드는 어느 무늬로도 치고, 돌 카드는 무늬가 없다
+      return card.enhancement !== "stone" && (card.suit === effect.suit || card.enhancement === "wild")
+        ? { chips: 0, mult: effect.mult, note: `${SUIT_NAMES[effect.suit]} 카드` }
+        : null;
     case "flat_mult":
     case "contains_mult":
     case "contains_chips":

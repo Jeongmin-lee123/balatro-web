@@ -15,6 +15,7 @@ export function tarotDef(id: string): TarotDef {
 /** 고른 카드가 필요한 타로면 고를 수 있는 장수 범위, 아니면 null */
 export function targetRange(effect: TarotEffect): { min: number; max: number } | null {
   switch (effect.kind) {
+    case "enhance":
     case "convert_suit":
     case "raise_rank":
     case "destroy":
@@ -78,6 +79,8 @@ function randomIds(pool: readonly string[], count: number, rngState: number): [s
 function applyEffect(state: RunState, effect: TarotEffect): RunState {
   const selected = new Set(state.round.selected);
   switch (effect.kind) {
+    case "enhance":
+      return updateCards(state, (card) => (selected.has(card.id) ? { ...card, enhancement: effect.enhancement } : card));
     case "convert_suit":
       return updateCards(state, (card) => (selected.has(card.id) ? { ...card, suit: effect.suit } : card));
     case "raise_rank":

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { HAND_TYPES, JOKERS } from "../../src/game/rules";
 import { cardChips, handBase, scoreHand } from "../../src/game/scoring";
 import type { HandLevels, JokerDef } from "../../src/game/types";
-import { cards } from "./cards";
+import { cards, enhanced } from "./cards";
 
 const jokers = (...idList: string[]): JokerDef[] => idList.map((id) => JOKERS[id] as JokerDef);
 
@@ -77,6 +77,43 @@ describe("scoreHand", () => {
   it("부싯돌: 족보 기본값을 절반으로 (반올림, 최소 1)", () => {
     expect(scoreHand(cards("Ah"), [], undefined, { halveBase: true })).toMatchObject({ chips: 3 + 11, mult: 1 });
     expect(scoreHand(cards("7h 7d 7s"), [], undefined, { halveBase: true })).toMatchObject({ chips: 15 + 21, mult: 2 });
+  });
+
+  it("보너스 +30칩, 배수 카드 +4배수, 돌 카드 +50칩(숫자 칩 없음)", () => {
+    expect(scoreHand([enhanced("Kh", "bonus"), ...cards("Kc")], [])).toMatchObject({ chips: 10 + 10 + 30 + 10, mult: 2 });
+    expect(scoreHand([enhanced("Kh", "mult"), ...cards("Kc")], [])).toMatchObject({ chips: 30, mult: 2 + 4 });
+    expect(scoreHand([...cards("Kh Kc"), enhanced("2s", "stone")], [])).toMatchObject({ chips: 30 + 50, mult: 2 });
+  });
+
+  it("곱하기는 그때까지의 배수에 곱한다: 유리 카드 뒤의 조커 +4는 곱해지지 않는다", () => {
+    const result = scoreHand([enhanced("Kh", "glass"), ...cards("Kc")], jokers("joker"));
+    expect(result.mult).toBe(2 * 2 + 4);
+    expect(result.total).toBe(30 * 8);
+  });
+
+  it("강철 카드는 손에 들고 있을 때만 x1.5", () => {
+    const steel = enhanced("Qs", "steel");
+    expect(scoreHand(cards("Kh Kc"), [], undefined, { held: [steel] }).mult).toBe(3);
+    expect(scoreHand([...cards("Kh Kc"), steel], []).mult).toBe(2);
+  });
+
+  it("무효 카드는 강화 효과도 없다", () => {
+    const result = scoreHand([enhanced("Kc", "mult"), ...cards("Kh")], [], undefined, { isDebuffed: (c) => c.suit === "clubs" });
+    expect(result.mult).toBe(2);
+  });
+
+  it("와일드 카드는 모든 무늬 조커에 반응한다", () => {
+    const result = scoreHand([enhanced("Kc", "wild"), ...cards("Kh")], jokers("greedy_joker", "lusty_joker"));
+    expect(result.mult).toBe(2 + 3 + 3 + 3);
+  });
+
+  it("행운과 유리는 난수로 정해진다. 난수를 주지 않으면 일어나지 않는다", () => {
+    const hand = [enhanced("Kh", "lucky"), enhanced("Kc", "glass")];
+    expect(scoreHand(hand, [])).toMatchObject({ money: 0, shattered: [] });
+    const always = scoreHand(hand, [], undefined, { random: () => 0 });
+    expect(always).toMatchObject({ money: 20, shattered: ["clubs-13"] });
+    expect(always.mult).toBe((2 + 20) * 2);
+    expect(scoreHand(hand, [], undefined, { random: () => 0.99 })).toMatchObject({ money: 0, shattered: [], mult: 4 });
   });
 
   it("로열 플러시는 이름만 다르고 스트레이트 플러시 값을 쓴다", () => {

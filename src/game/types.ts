@@ -5,11 +5,15 @@ export type Suit = "spades" | "hearts" | "clubs" | "diamonds";
 /** 11=J, 12=Q, 13=K, 14=A */
 export type Rank = 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14;
 
+/** 카드 강화. 없으면 일반 카드 (F15) */
+export type Enhancement = "bonus" | "mult" | "wild" | "glass" | "steel" | "stone" | "gold" | "lucky";
+
 export interface Card {
-  /** 예: "hearts-13" */
+  /** 처음 만든 이름. 예: "hearts-13". 무늬나 숫자가 바뀌어도 그대로 둔다 (design.md D-014) */
   id: string;
   rank: Rank;
   suit: Suit;
+  enhancement?: Enhancement;
 }
 
 export type SortBy = "rank" | "suit";
@@ -84,6 +88,7 @@ export interface BossDef {
 }
 
 export type TarotEffect =
+  | { kind: "enhance"; enhancement: Enhancement; max: number }
   | { kind: "convert_suit"; suit: Suit; max: number }
   | { kind: "raise_rank"; max: number }
   | { kind: "destroy"; max: number }
@@ -141,11 +146,12 @@ export interface OwnedJoker {
   paid: number;
 }
 
-/** 화면에 보여 줄 계산 과정 한 줄. chips, mult는 이 줄에서 더한 값 */
+/** 화면에 보여 줄 계산 과정 한 줄. chips, mult는 이 줄에서 더하는 값, xMult는 그다음 배수에 곱하는 값 */
 export interface ScoreStep {
   source: string;
   chips: number;
   mult: number;
+  xMult?: number;
   note: string;
 }
 
@@ -155,6 +161,10 @@ export interface ScoreResult {
   mult: number;
   total: number;
   steps: ScoreStep[];
+  /** 행운 카드로 번 돈 */
+  money: number;
+  /** 점수 계산 뒤 깨지는 유리 카드 id */
+  shattered: string[];
 }
 
 export type Phase = "blind_select" | "round" | "cash_out" | "shop" | "won" | "lost";

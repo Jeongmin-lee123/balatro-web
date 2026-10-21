@@ -43,6 +43,14 @@ describe("고른 카드를 바꾸는 타로", () => {
     expect(used.round.selected).toEqual([]);
   });
 
+  it("강화 타로: 여황제는 2장까지 배수 카드로, 탑은 1장만 돌 카드로", () => {
+    const empress = useTarot(pick(withTarots(["empress"]), "hearts-13", "clubs-13"), 0);
+    expect(empress.deck.filter((c) => c.enhancement === "mult").map((c) => c.id).sort()).toEqual(["clubs-13", "hearts-13"]);
+    expect(canUseTarot(pick(withTarots(["tower"]), "hearts-13", "clubs-13"), 0)).toBe(false);
+    const tower = useTarot(pick(withTarots(["tower"]), "hearts-13"), 0);
+    expect(tower.round.hand.find((c) => c.id === "hearts-13")?.enhancement).toBe("stone");
+  });
+
   it("최대 장수를 넘게 고르거나 라운드가 아니면 쓸 수 없다", () => {
     const four = pick(withTarots(["star"]), "hearts-13", "clubs-13", "spades-2", "diamonds-3");
     expect(canUseTarot(four, 0)).toBe(false);

@@ -17,8 +17,9 @@ export function rankLabel(rank: Rank): string {
   return ({ 11: "J", 12: "Q", 13: "K", 14: "A" } as Partial<Record<Rank, string>>)[rank] ?? String(rank);
 }
 
-/** 예: "K 하트" */
+/** 예: "K 하트". 돌 카드는 숫자와 무늬가 없다 */
 export function cardLabel(card: Card): string {
+  if (card.enhancement === "stone") return "돌 카드";
   return `${rankLabel(card.rank)} ${SUIT_NAMES[card.suit]}`;
 }
 

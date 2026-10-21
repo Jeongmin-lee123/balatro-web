@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { evaluateHand } from "../../src/game/handEval";
-import { cards, ids } from "./cards";
+import { cards, enhanced, ids } from "./cards";
 
 describe("evaluateHand: 족보 판정", () => {
   it.each([
@@ -76,5 +76,29 @@ describe("evaluateHand: 포함 족보", () => {
     expect(evaluateHand(cards("5d 6d 7d 8d 9d")).contains).toEqual(
       expect.arrayContaining(["straight", "flush"]),
     );
+  });
+});
+
+describe("evaluateHand: 강화 카드", () => {
+  it("와일드 카드는 어느 무늬로도 플러시를 만든다", () => {
+    const hand = [...cards("2h 7h 9h Jh"), enhanced("Ks", "wild")];
+    expect(evaluateHand(hand).type).toBe("flush");
+  });
+
+  it("돌 카드는 족보 판정에서 빠지지만 점수 카드에는 들어간다", () => {
+    const stone = enhanced("Ks", "stone");
+    const result = evaluateHand([...cards("7h 7d"), stone]);
+    expect(result.type).toBe("pair");
+    expect(ids(result.scoringCards)).toEqual(["hearts-7", "diamonds-7", "spades-13"]);
+  });
+
+  it("돌 카드만 내면 하이 카드이고 돌 카드가 점수에 들어간다", () => {
+    const result = evaluateHand([enhanced("Ks", "stone")]);
+    expect(result.type).toBe("high_card");
+    expect(result.scoringCards).toHaveLength(1);
+  });
+
+  it("돌 카드가 끼면 5장이어도 스트레이트가 되지 않는다", () => {
+    expect(evaluateHand([...cards("5h 6d 7s 8c"), enhanced("9h", "stone")]).type).toBe("high_card");
   });
 });
