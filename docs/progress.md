@@ -114,3 +114,4 @@ npm run build      배포용 빌드 (dist/)
 | 2026-10-21 | T-020 | 사용자, Claude | clever_joker를 한 장짜리 그림으로 교체 (잘린 구도와 낮은 해상도 해결) |
 | 2026-10-21 | T-020 | 사용자, Claude | crazy_joker, droll_joker를 세 칸 그림(art/jokers/sheets/sheet-2026-10-21-b.png)에서 잘라 교체. 왼쪽 칸은 mad_joker와 같은 소재라 쓰지 않음. wily_joker만 낮은 해상도로 남음 |
 | 2026-10-21 | T-020 | 사용자, Claude | wily_joker를 세 칸 그림(sheets/sheet-2026-10-21-d.png) 셋째 칸으로 교체. 소재(소매에서 같은 카드 세 장)와 완전히 같지는 않지만 표정이 맞아 채택. 표에서 자른 저해상도 그림은 이제 없음 |
+| 2026-10-21 | T-028 | Claude | 조커 에디션 4종 규칙(game/editions.ts, data/editions.json), 상점 확률과 가격, 점수 순서(호일, 홀로 -> 조커 -> 폴리크롬), 네거티브 칸, 운명의 수레바퀴 타로. SAVE_VERSION 5. 화면은 다음 커밋 |

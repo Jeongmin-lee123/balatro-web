@@ -1,10 +1,11 @@
 // 점수 계산. 순서는 design.md 4.1을 따른다. 조커 순서가 결과를 바꾸므로 순서를 바꾸지 않는다.
 // 곱하는 효과(유리, 강철)가 있어 단계마다 순서대로 누적한다 (design.md D-016).
 import { cardLabel } from "./deck";
+import { editionAfter, editionBefore } from "./editions";
 import { evaluateHand } from "./handEval";
 import { onCardScored, onIndependent } from "./jokers";
 import { HANDS } from "./rules";
-import type { Card, HandLevels, HandResult, HandType, JokerDef, ScoreResult, ScoreStep } from "./types";
+import type { Card, EditionId, HandLevels, HandResult, HandType, JokerDef, ScoreResult, ScoreStep } from "./types";
 
 /** 2~10은 숫자 그대로, J/Q/K는 10, A는 11 */
 export function cardChips(card: Card): number {
@@ -32,6 +33,8 @@ export interface ScoreRules {
   held?: readonly Card[];
   /** 0 이상 1 미만의 난수 (행운, 유리). 주지 않으면 확률 효과는 일어나지 않는다 */
   random?: () => number;
+  /** jokers와 같은 순서의 조커 에디션 */
+  jokerEditions?: readonly (EditionId | undefined)[];
 }
 
 const LUCKY_MULT_CHANCE = 1 / 5;
@@ -105,10 +108,16 @@ export function scoreHand(cards: readonly Card[], jokers: readonly JokerDef[], l
   }
 
   const ctx = { hand, playedCount: cards.length, jokerCount: jokers.length };
-  for (const joker of jokers) {
+  // 조커마다: 호일, 홀로그래픽 -> 조커 효과 -> 폴리크롬 (원작 순서)
+  jokers.forEach((joker, i) => {
+    const edition = rules.jokerEditions?.[i];
+    const before = editionBefore(edition, joker.name);
+    if (before) steps.push(before);
     const gain = onIndependent(joker.effect, ctx);
     if (gain) steps.push({ source: joker.name, ...gain });
-  }
+    const after = editionAfter(edition, joker.name);
+    if (after) steps.push(after);
+  });
 
   let chips = 0;
   let mult = 0;

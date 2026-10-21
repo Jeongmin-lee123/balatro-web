@@ -17,6 +17,8 @@
     "effect": { "kind": "raise_rank", "max": 2 } },
   { "id": "hermit", "name": "은둔자", "numeral": "IX", "price": 3, "description": "돈을 두 배로 (최대 +$20)",
     "effect": { "kind": "double_money", "max": 20 } },
+  { "id": "wheel_of_fortune", "name": "운명의 수레바퀴", "numeral": "X", "price": 3, "description": "1/4 확률로 에디션 없는 조커 하나에 호일, 홀로그래픽, 폴리크롬 중 하나",
+    "effect": { "kind": "add_edition", "chance": 0.25 } },
   { "id": "justice", "name": "정의", "numeral": "XI", "price": 3, "description": "고른 카드 1장을 유리 카드로",
     "effect": { "kind": "enhance", "enhancement": "glass", "max": 1 } },
   { "id": "hanged_man", "name": "매달린 사람", "numeral": "XII", "price": 3, "description": "고른 카드 최대 2장을 없앤다",

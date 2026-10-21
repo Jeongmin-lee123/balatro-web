@@ -1,10 +1,14 @@
 // 타로 카드. 고른 카드를 바꾸는 타로는 라운드 중에만, 나머지는 블라인드 선택, 라운드, 상점에서 쓴다.
 // 카드를 바꾸면 손패와 판 전체 덱(state.deck)을 함께 바꿔 다음 라운드에도 남게 한다.
 import { sortHand } from "./deck";
+import { jokerSlots } from "./editions";
 import { nextRandom } from "./rng";
 import { JOKER_IDS, JOKERS, RULES, TAROT_IDS, TAROTS } from "./rules";
 import { sellValue } from "./shop";
-import type { Card, Rank, RunState, TarotDef, TarotEffect } from "./types";
+import type { Card, EditionId, Rank, RunState, TarotDef, TarotEffect } from "./types";
+
+/** 운명의 수레바퀴가 붙이는 에디션 (네거티브 제외) */
+const WHEEL_EDITIONS: readonly EditionId[] = ["foil", "holographic", "polychrome"];
 
 export function tarotDef(id: string): TarotDef {
   const tarot = TAROTS[id];
@@ -27,6 +31,7 @@ export function targetRange(effect: TarotEffect): { min: number; max: number } |
     case "create_tarots":
     case "create_joker":
     case "repeat_last":
+    case "add_edition":
       return null;
   }
 }
@@ -45,7 +50,8 @@ export function canUseTarot(state: RunState, index: number): boolean {
     const count = state.round.selected.length;
     return state.phase === "round" && count >= range.min && count <= range.max;
   }
-  if (effect.kind === "create_joker") return state.jokers.length < RULES.jokerSlots;
+  if (effect.kind === "create_joker") return state.jokers.length < jokerSlots(state.jokers);
+  if (effect.kind === "add_edition") return state.jokers.some((joker) => !joker.edition);
   if (effect.kind === "repeat_last") return state.lastTarot !== null && roomAfterUse(state) > 0;
   return true;
 }
@@ -65,15 +71,20 @@ function raised(rank: Rank): Rank {
   return (rank === 14 ? 2 : rank + 1) as Rank;
 }
 
-function randomIds(pool: readonly string[], count: number, rngState: number): [string[], number] {
-  const ids: string[] = [];
+function randomValues(count: number, rngState: number): [number[], number] {
+  const values: number[] = [];
   let state = rngState;
   for (let i = 0; i < count; i++) {
     const [value, next] = nextRandom(state);
-    ids.push(pool[Math.floor(value * pool.length)] as string);
+    values.push(value);
     state = next;
   }
-  return [ids, state];
+  return [values, state];
+}
+
+function randomIds(pool: readonly string[], count: number, rngState: number): [string[], number] {
+  const [values, next] = randomValues(count, rngState);
+  return [values.map((value) => pool[Math.floor(value * pool.length)] as string), next];
 }
 
 function applyEffect(state: RunState, effect: TarotEffect): RunState {
@@ -113,6 +124,15 @@ function applyEffect(state: RunState, effect: TarotEffect): RunState {
     }
     case "repeat_last":
       return state.lastTarot ? { ...state, consumables: [...state.consumables, state.lastTarot] } : state;
+    case "add_edition": {
+      const [[hit, pickJoker, pickEdition], rngState] = randomValues(3, state.rngState);
+      if ((hit as number) >= effect.chance) return { ...state, rngState };
+      const plain = state.jokers.filter((joker) => !joker.edition);
+      const target = plain[Math.floor((pickJoker as number) * plain.length)];
+      const edition = WHEEL_EDITIONS[Math.floor((pickEdition as number) * WHEEL_EDITIONS.length)];
+      if (!target || !edition) return { ...state, rngState };
+      return { ...state, rngState, jokers: state.jokers.map((joker) => (joker.uid === target.uid ? { ...joker, edition } : joker)) };
+    }
   }
 }
 

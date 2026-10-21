@@ -7,7 +7,8 @@ import planetsJson from "../../data/planets.json";
 import bossesJson from "../../data/bosses.json";
 import tagsJson from "../../data/tags.json";
 import tarotsJson from "../../data/tarots.json";
-import type { BossDef, HandType, JokerDef, PlanetDef, ShopItemKind, TagDef, TarotDef } from "./types";
+import editionsJson from "../../data/editions.json";
+import type { BossDef, EditionDef, EditionId, HandType, JokerDef, PlanetDef, ShopItemKind, TagDef, TarotDef } from "./types";
 
 export interface HandInfo {
   name: string;
@@ -57,6 +58,11 @@ export const BOSSES: Record<string, BossDef> = Object.fromEntries(BOSS_LIST.map(
 export const TAG_LIST = tagsJson as TagDef[];
 
 export const TAGS: Record<string, TagDef> = Object.fromEntries(TAG_LIST.map((tag) => [tag.id, tag]));
+
+/** data/editions.json 순서 그대로. 상점 확률은 이 순서로 구간을 나눈다 */
+export const EDITION_LIST = editionsJson as EditionDef[];
+
+export const EDITIONS = Object.fromEntries(EDITION_LIST.map((edition) => [edition.id, edition])) as Record<EditionId, EditionDef>;
 
 export const ANTE_COUNT = BLINDS.anteBase.length;
 

@@ -110,6 +110,22 @@ describe("언제든 쓰는 타로", () => {
     expect(canUseTarot(full, 0)).toBe(false);
   });
 
+  it("운명의 수레바퀴: 에디션 없는 조커가 있어야 쓰고, 맞으면 호일, 홀로, 폴리크롬 중 하나", () => {
+    expect(canUseTarot(withTarots(["wheel_of_fortune"], undefined, { jokers: [] }), 0)).toBe(false);
+    const jokers = [{ uid: "a", defId: "joker", paid: 2 }];
+    let hits = 0;
+    for (let seed = 0; seed < 400; seed++) {
+      const used = useTarot(withTarots(["wheel_of_fortune"], undefined, { jokers, rngState: seed }), 0);
+      const edition = used.jokers[0]?.edition;
+      if (edition) {
+        hits++;
+        expect(["foil", "holographic", "polychrome"]).toContain(edition);
+      }
+    }
+    expect(hits / 400).toBeGreaterThan(0.18);
+    expect(hits / 400).toBeLessThan(0.32);
+  });
+
   it("바보: 마지막으로 쓴 타로를 만든다. 쓴 적이 없으면 못 쓴다", () => {
     expect(canUseTarot(withTarots(["fool"]), 0)).toBe(false);
     const afterHermit = useTarot(withTarots(["hermit", "fool"]), 0);

@@ -1,0 +1,10 @@
+[
+  { "id": "foil", "name": "호일", "description": "칩 +50", "chance": 0.02, "price": 2,
+    "effect": { "kind": "chips", "chips": 50 } },
+  { "id": "holographic", "name": "홀로그래픽", "description": "배수 +10", "chance": 0.014, "price": 3,
+    "effect": { "kind": "mult", "mult": 10 } },
+  { "id": "polychrome", "name": "폴리크롬", "description": "배수 x1.5", "chance": 0.003, "price": 5,
+    "effect": { "kind": "x_mult", "xMult": 1.5 } },
+  { "id": "negative", "name": "네거티브", "description": "조커 칸 +1", "chance": 0.003, "price": 5,
+    "effect": { "kind": "slot" } }
+]

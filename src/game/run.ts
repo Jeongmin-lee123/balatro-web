@@ -4,6 +4,7 @@ import { nextBlind, targetScore } from "./blinds";
 import { bossDef, canPlayCount, isDebuffed, pickBoss, roundLimits } from "./bosses";
 import { createDeck, drawCards, sortHand } from "./deck";
 import { cashOutLines } from "./economy";
+import { jokerSlots } from "./editions";
 import { evaluateHand } from "./handEval";
 import { nextRandom, shuffle } from "./rng";
 import { ANTE_COUNT, HAND_TYPES, JOKERS, PLANETS, RULES } from "./rules";
@@ -214,6 +215,7 @@ function play(state: RunState): RunState {
     halveBase: effect?.kind === "halve_base",
     held,
     random,
+    jokerEditions: state.jokers.map((joker) => joker.edition),
   });
   const round = taking.round;
   const deck = result.shattered.length > 0 ? state.deck.filter((card) => !result.shattered.includes(card.id)) : state.deck;
@@ -265,7 +267,8 @@ function collect(state: RunState): RunState {
 export function canBuy(state: RunState, slot: number): boolean {
   const offer = state.shop?.offers[slot];
   if (!offer || state.money < offerPrice(offer)) return false;
-  if (offer.kind === "joker") return state.jokers.length < RULES.jokerSlots;
+  // 네거티브 조커는 칸을 하나 더 만들어 주므로 칸이 차 있어도 살 수 있다
+  if (offer.kind === "joker") return offer.edition === "negative" || state.jokers.length < jokerSlots(state.jokers);
   if (offer.kind === "tarot") return state.consumables.length < RULES.consumableSlots;
   return true;
 }
@@ -288,7 +291,7 @@ function buy(state: RunState, slot: number): RunState {
   }
   return {
     ...bought,
-    jokers: [...state.jokers, { uid: `j${state.nextUid}`, defId: offer.id, paid: price }],
+    jokers: [...state.jokers, { uid: `j${state.nextUid}`, defId: offer.id, paid: price, ...(offer.edition ? { edition: offer.edition } : {}) }],
     nextUid: state.nextUid + 1,
   };
 }

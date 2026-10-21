@@ -158,6 +158,18 @@ describe("정산과 상점", () => {
     expect(apply(full, { type: "buy", slot: 0 })).toBe(full);
   });
 
+  it("네거티브 조커는 칸이 가득 차도 살 수 있고, 산 뒤 칸이 하나 는다", () => {
+    const shop = inShop(50);
+    const full = {
+      ...shop,
+      jokers: Array.from({ length: RULES.jokerSlots }, (_, i) => ({ uid: `x${i}`, defId: "joker", paid: 2 })),
+      shop: { offers: [{ kind: "joker" as const, id: "joker", edition: "negative" as const }], rerollCost: 5 },
+    };
+    const bought = apply(full, { type: "buy", slot: 0 });
+    expect(bought.jokers).toHaveLength(RULES.jokerSlots + 1);
+    expect(bought.jokers.at(-1)).toMatchObject({ edition: "negative", paid: 7 });
+  });
+
   it("다시 굴리기는 $5부터 $1씩 오른다", () => {
     const shop = inShop(20);
     const once = apply(shop, { type: "reroll" });

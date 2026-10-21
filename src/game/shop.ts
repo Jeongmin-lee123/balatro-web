@@ -1,3 +1,4 @@
+import { editionDef, rollJokerEdition } from "./editions";
 import { nextRandom } from "./rng";
 import { JOKER_IDS, JOKERS, PLANET_IDS, PLANETS, RULES, TAROT_IDS, TAROTS } from "./rules";
 import type { ShopItemKind, ShopOffer } from "./types";
@@ -16,7 +17,10 @@ function rollOne(rngState: number): [ShopOffer, number] {
 
   const ids = ITEM_IDS[kind];
   const [idRoll, afterId] = nextRandom(afterKind);
-  return [{ kind, id: ids[Math.floor(idRoll * ids.length)] as string }, afterId];
+  const id = ids[Math.floor(idRoll * ids.length)] as string;
+  if (kind !== "joker") return [{ kind, id }, afterId];
+  const [edition, afterEdition] = rollJokerEdition(afterId);
+  return [edition ? { kind, id, edition } : { kind, id }, afterEdition];
 }
 
 /** 진열 count칸을 고른다. 이미 가진 조커도 나올 수 있다 */
@@ -35,7 +39,7 @@ export function offerPrice(offer: ShopOffer): number {
   if (offer.price !== undefined) return offer.price;
   const def = ITEMS[offer.kind][offer.id];
   if (!def) throw new Error(`없는 상품: ${offer.kind} ${offer.id}`);
-  return def.price;
+  return def.price + (offer.edition ? editionDef(offer.edition).price : 0);
 }
 
 /** 산 값의 절반을 내림, 최소 $1 */

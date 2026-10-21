@@ -97,7 +97,8 @@ export type TarotEffect =
   | { kind: "joker_sell_value"; max: number }
   | { kind: "create_tarots"; count: number }
   | { kind: "create_joker" }
-  | { kind: "repeat_last" };
+  | { kind: "repeat_last" }
+  | { kind: "add_edition"; chance: number };
 
 export interface TarotDef {
   id: string;
@@ -137,6 +138,27 @@ export interface ShopOffer {
   id: string;
   /** 정가 대신 받는 가격 (쿠폰 태그면 0) */
   price?: number;
+  /** 조커에만 붙는다 */
+  edition?: EditionId;
+}
+
+export type EditionId = "foil" | "holographic" | "polychrome" | "negative";
+
+export type EditionEffect =
+  | { kind: "chips"; chips: number }
+  | { kind: "mult"; mult: number }
+  | { kind: "x_mult"; xMult: number }
+  | { kind: "slot" };
+
+export interface EditionDef {
+  id: EditionId;
+  name: string;
+  description: string;
+  /** 상점 조커에 붙을 확률 */
+  chance: number;
+  /** 상점 가격에 더하는 값 */
+  price: number;
+  effect: EditionEffect;
 }
 
 export interface OwnedJoker {
@@ -144,6 +166,7 @@ export interface OwnedJoker {
   uid: string;
   defId: string;
   paid: number;
+  edition?: EditionId;
 }
 
 /** 화면에 보여 줄 계산 과정 한 줄. chips, mult는 이 줄에서 더하는 값, xMult는 그다음 배수에 곱하는 값 */
