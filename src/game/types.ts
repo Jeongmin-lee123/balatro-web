@@ -23,6 +23,9 @@ export interface Card {
 export type SortBy = "rank" | "suit";
 
 export type HandType =
+  | "flush_five"
+  | "flush_house"
+  | "five_of_a_kind"
   | "high_card"
   | "pair"
   | "two_pair"

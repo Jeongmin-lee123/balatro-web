@@ -133,6 +133,12 @@ describe("scoreHand", () => {
     expect(scoreHand(cards("Kh Kc"), [], undefined, { held: [sealed("Qs", "red", "steel")] }).mult).toBe(2 * 1.5 * 1.5);
   });
 
+  it("비밀 족보 기본값: 플러시 파이브 160칩 x16", () => {
+    const result = scoreHand(cards("Ah Ah Ah Ah Ah"), []);
+    expect(result.steps[0]).toMatchObject({ source: "플러시 파이브", chips: 160, mult: 16 });
+    expect(result.chips).toBe(160 + 11 * 5);
+  });
+
   it("로열 플러시는 이름만 다르고 스트레이트 플러시 값을 쓴다", () => {
     const result = scoreHand(cards("Ts Js Qs Ks As"), []);
     expect(result.steps[0]).toMatchObject({ source: "로열 플러시", chips: 100, mult: 8 });

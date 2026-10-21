@@ -102,3 +102,25 @@ describe("evaluateHand: 강화 카드", () => {
     expect(evaluateHand([...cards("5h 6d 7s 8c"), enhanced("9h", "stone")]).type).toBe("high_card");
   });
 });
+
+describe("evaluateHand: 비밀 족보", () => {
+  it("같은 숫자 5장은 파이브 카드, 원 페어와 트리플과 포카드를 포함한다", () => {
+    const result = evaluateHand(cards("7h 7d 7s 7c 7h"));
+    expect(result.type).toBe("five_of_a_kind");
+    expect(result.contains).toEqual(expect.arrayContaining(["pair", "three_of_a_kind", "four_of_a_kind"]));
+    expect(result.contains).not.toContain("two_pair");
+    expect(result.scoringCards).toHaveLength(5);
+  });
+
+  it("같은 무늬 풀 하우스는 플러시 하우스", () => {
+    expect(evaluateHand(cards("Kh Kh Kh 4h 4h")).type).toBe("flush_house");
+  });
+
+  it("같은 무늬 파이브 카드는 플러시 파이브", () => {
+    expect(evaluateHand(cards("Ah Ah Ah Ah Ah")).type).toBe("flush_five");
+  });
+
+  it("와일드 카드로도 플러시 하우스가 된다", () => {
+    expect(evaluateHand([...cards("Kh Kh Kh 4h"), enhanced("4s", "wild")]).type).toBe("flush_house");
+  });
+});

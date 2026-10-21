@@ -7,5 +7,8 @@
   "flush": { "name": "플러시", "chips": 35, "mult": 4, "levelChips": 15, "levelMult": 2 },
   "full_house": { "name": "풀 하우스", "chips": 40, "mult": 4, "levelChips": 25, "levelMult": 2 },
   "four_of_a_kind": { "name": "포카드", "chips": 60, "mult": 7, "levelChips": 30, "levelMult": 3 },
-  "straight_flush": { "name": "스트레이트 플러시", "chips": 100, "mult": 8, "levelChips": 40, "levelMult": 4 }
+  "straight_flush": { "name": "스트레이트 플러시", "chips": 100, "mult": 8, "levelChips": 40, "levelMult": 4 },
+  "five_of_a_kind": { "name": "파이브 카드", "chips": 120, "mult": 12, "levelChips": 35, "levelMult": 3 },
+  "flush_house": { "name": "플러시 하우스", "chips": 140, "mult": 14, "levelChips": 40, "levelMult": 4 },
+  "flush_five": { "name": "플러시 파이브", "chips": 160, "mult": 16, "levelChips": 50, "levelMult": 3 }
 }

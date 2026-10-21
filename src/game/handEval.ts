@@ -3,6 +3,9 @@ import type { Card, HandResult, HandType, Rank } from "./types";
 
 /** 높은 족보부터. 판정은 이 순서로 처음 맞는 것을 고른다 */
 const HAND_ORDER: readonly HandType[] = [
+  "flush_five",
+  "flush_house",
+  "five_of_a_kind",
   "straight_flush",
   "four_of_a_kind",
   "full_house",
@@ -49,6 +52,10 @@ function containedHands(cards: readonly Card[], groups: Map<Rank, Card[]>): Set<
   if (flush) found.add("flush");
   if (straight) found.add("straight");
   if (flush && straight) found.add("straight_flush");
+  // 비밀 족보: 같은 카드가 여러 장 생겨야 나온다 (죽음 타로, 스탠다드 팩)
+  if (sizes.some((size) => size >= 5)) found.add("five_of_a_kind");
+  if (flush && found.has("full_house")) found.add("flush_house");
+  if (flush && found.has("five_of_a_kind")) found.add("flush_five");
   return found;
 }
 
@@ -57,6 +64,9 @@ function scoringCardsFor(type: HandType, cards: readonly Card[], groups: Map<Ran
     new Set([...groups.entries()].filter(([, group]) => group.length >= size).map(([rank]) => rank));
 
   switch (type) {
+    case "flush_five":
+    case "flush_house":
+    case "five_of_a_kind":
     case "straight_flush":
     case "flush":
     case "straight":
