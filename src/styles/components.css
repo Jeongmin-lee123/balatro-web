@@ -618,3 +618,16 @@
   width: 72%;
   height: auto;
 }
+
+/* 보스 블라인드 */
+.blind__boss {
+  font-size: var(--size-small);
+  text-align: center;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 4px;
+  padding: 2px var(--gap-2);
+}
+
+.hand__card.is-debuffed .card-svg {
+  filter: grayscale(1) brightness(0.55);
+}

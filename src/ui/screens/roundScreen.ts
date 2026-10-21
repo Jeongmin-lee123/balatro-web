@@ -1,6 +1,8 @@
 import { cardLabel } from "../../game/deck";
 import { evaluateHand } from "../../game/handEval";
+import { isDebuffed } from "../../game/bosses";
 import { RULES } from "../../game/rules";
+import { activeBoss, canPlay } from "../../game/run";
 import { handBase, handName } from "../../game/scoring";
 import type { RunState, ScoreResult } from "../../game/types";
 import { cardSvg } from "../cardView";
@@ -46,15 +48,17 @@ function preview(state: RunState): string {
 
 export function renderRoundScreen(state: RunState): string {
   const { round } = state;
+  const effect = activeBoss(state)?.effect ?? null;
   const cards = round.hand
     .map((card) => {
       const selected = round.selected.includes(card.id);
       const full = !selected && round.selected.length >= RULES.maxSelect;
+      const debuffed = effect !== null && isDebuffed(effect, card);
       return button({
         action: { type: "toggle_card", cardId: card.id },
-        label: cardLabel(card),
+        label: debuffed ? `${cardLabel(card)} (무효)` : cardLabel(card),
         html: cardSvg(card),
-        className: `hand__card${selected ? " is-selected" : ""}`,
+        className: `hand__card${selected ? " is-selected" : ""}${debuffed ? " is-debuffed" : ""}`,
         pressed: selected,
         disabled: full,
         key: `card-${card.id}`,
@@ -69,7 +73,7 @@ export function renderRoundScreen(state: RunState): string {
       ${preview(state)}
       <div class="hand">${cards}</div>
       <div class="hand-actions">
-        ${button({ action: { type: "play" }, label: "플레이", className: "btn btn--play", disabled: nothing, key: "play" })}
+        ${button({ action: { type: "play" }, label: "플레이", className: "btn btn--play", disabled: !canPlay(state), key: "play" })}
         <div class="sort">
           <span class="sort__label">정렬</span>
           ${button({ action: { type: "sort", by: "rank" }, label: "숫자", className: "btn btn--small", pressed: round.sortBy === "rank", key: "sort-rank" })}
@@ -77,6 +81,6 @@ export function renderRoundScreen(state: RunState): string {
         </div>
         ${button({ action: { type: "discard" }, label: `버리기`, className: "btn btn--discard", disabled: nothing || round.discardsLeft === 0, key: "discard" })}
       </div>
-      <p class="hand-hint">${round.drawPile.length}장 남은 덱 / 최대 ${RULES.maxSelect}장 선택</p>
+      <p class="hand-hint">${round.drawPile.length}장 남은 덱 / ${effect?.kind === "must_play" ? `이번 블라인드는 ${effect.count}장을 내야 합니다` : `최대 ${RULES.maxSelect}장 선택`}</p>
     </section>`;
 }

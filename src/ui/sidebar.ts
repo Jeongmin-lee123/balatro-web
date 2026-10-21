@@ -1,6 +1,6 @@
 import { blindName } from "../game/blinds";
 import { ANTE_COUNT } from "../game/rules";
-import { currentTarget } from "../game/run";
+import { activeBoss, currentTarget } from "../game/run";
 import { handName } from "../game/scoring";
 import type { RunState } from "../game/types";
 import { esc } from "./dom";
@@ -15,9 +15,12 @@ function blindBlock(state: RunState): string {
   if (state.phase === "shop") {
     return `<div class="blind blind--shop"><span class="blind__name">상점</span><span class="blind__sub">다음 블라인드 전에 조커와 행성을 고른다</span></div>`;
   }
+  const boss = activeBoss(state);
+  const bossLine = boss ? `<span class="blind__boss">${esc(boss.name)}: ${esc(boss.description)}</span>` : "";
   return `
     <div class="blind ${BLIND_CLASS[state.blindIndex]}">
       <span class="blind__name">${esc(blindName(state.blindIndex))}</span>
+      ${bossLine}
       <span class="blind__sub">목표 점수</span>
       <span class="blind__target">${fmt(currentTarget(state))}</span>
     </div>`;

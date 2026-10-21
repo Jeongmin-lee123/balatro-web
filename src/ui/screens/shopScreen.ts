@@ -1,5 +1,6 @@
 import { blindName, nextBlind, targetScore } from "../../game/blinds";
 import { JOKERS, PLANETS, RULES } from "../../game/rules";
+import { bossDef } from "../../game/bosses";
 import { canBuy } from "../../game/run";
 import { offerPrice } from "../../game/shop";
 import type { RunState, ShopOffer } from "../../game/types";
@@ -37,6 +38,10 @@ export function renderShopScreen(state: RunState): string {
   const shop = state.shop;
   if (!shop) return "";
   const next = nextBlind(state.ante, state.blindIndex);
+  // 다음이 보스면 이번 앤티의 보스가 정해져 있다. 다음 앤티의 보스는 앤티가 바뀔 때 고른다
+  const boss = next.blindIndex === 2 ? bossDef(state.boss) : null;
+  const target = targetScore(next.ante, next.blindIndex, boss?.multiplier);
+  const bossNote = boss ? ` (${esc(boss.name)}: ${esc(boss.description)})` : "";
   return `
     <section class="panel shop" aria-labelledby="shop-title">
       <h2 id="shop-title" class="panel__title">상점</h2>
@@ -51,6 +56,6 @@ export function renderShopScreen(state: RunState): string {
         })}
         ${button({ action: { type: "next_round" }, label: "다음 라운드", className: "btn btn--play", key: "next-round" })}
       </div>
-      <p class="shop__next">다음: 앤티 ${next.ante} ${esc(blindName(next.blindIndex))}, 목표 ${targetScore(next.ante, next.blindIndex).toLocaleString("ko-KR")}점</p>
+      <p class="shop__next">다음: 앤티 ${next.ante} ${esc(blindName(next.blindIndex))}${bossNote}, 목표 ${target.toLocaleString("ko-KR")}점</p>
     </section>`;
 }

@@ -45,6 +45,7 @@ src/
 │  ├─ scoring.ts         점수 계산과 계산 과정 기록
 │  ├─ jokers.ts          조커 효과 종류별 함수
 │  ├─ blinds.ts          목표 점수, 블라인드 보상
+│  ├─ bosses.ts          보스 고르기, 무효 카드, 라운드 횟수 제한
 │  ├─ economy.ts         라운드 정산 (보상, 남은 핸드, 이자)
 │  ├─ shop.ts            진열, 구매, 리롤, 판매
 │  └─ run.ts             한 판의 상태 전이. apply(state, action) -> state
@@ -75,6 +76,7 @@ data/
 ├─ rules.json            손패 수, 핸드, 버리기, 조커 칸, 이자, 리롤 값
 ├─ jokers.json           조커 목록 (id, 이름, 가격, 설명, 효과 종류와 값)
 ├─ planets.json          행성 9종 (id, 이름, 올리는 족보, 가격, 그림 색)
+├─ bosses.json           보스 11종 (id, 이름, 설명, 최소 앤티, 목표 배수, 효과)
 └─ faces.json            J, Q, K 도트 격자와 팔레트
 public/
 └─ jokers/<id>.png       처리된 조커 그림 (256 x 384, 16색, 배경 그대로)
@@ -144,6 +146,7 @@ interface RunState {
   money: number;
   jokers: OwnedJoker[];
   handLevels: Record<HandType, number>;   // 족보 레벨, 처음 모두 1 (F10)
+  boss: string; bossesSeen: string[];     // 이번 앤티 보스, 이번 판에 나온 보스 (F11)
   round: { drawPile: Card[]; hand: Card[]; selected: string[]; handsLeft: number; discardsLeft: number;
            score: number; lastScore: ScoreResult | null; sortBy: "rank" | "suit" };
   cashOut: { lines: { label: string; amount: number }[]; total: number } | null;
@@ -170,15 +173,16 @@ type Action =
 | 파일 | 공개 함수 |
 |---|---|
 | rng.ts | `nextRandom(state): [value, nextState]`, `shuffle(items, state): [items, nextState]` |
-| rules.ts | `HANDS`, `HAND_TYPES`, `BLINDS`, `RULES`, `JOKERS`(id로 찾기), `JOKER_IDS`, `PLANETS`, `PLANET_IDS`, `ANTE_COUNT` |
+| rules.ts | `HANDS`, `HAND_TYPES`, `BLINDS`, `RULES`, `JOKERS`(id로 찾기), `JOKER_IDS`, `PLANETS`, `PLANET_IDS`, `BOSSES`, `BOSS_LIST`, `ANTE_COUNT` |
 | deck.ts | `SUITS`, `SUIT_NAMES`, `createDeck(): Card[]`, `drawCards(pile, count): { drawn, rest }`, `sortHand(cards, by): Card[]`, `rankLabel(rank)`, `cardLabel(card)` |
 | handEval.ts | `evaluateHand(cards): HandResult` |
-| scoring.ts | `scoreHand(cards, jokerDefs, levels?): ScoreResult`, `handBase(type, level)`, `cardChips(card)`, `handName(hand)` |
+| scoring.ts | `scoreHand(cards, jokerDefs, levels?, rules?): ScoreResult` (rules: 무효 카드 판정, 기본값 절반), `handBase(type, level)`, `cardChips(card)`, `handName(hand)` |
 | jokers.ts | `onCardScored(effect, card): JokerGain \| null`, `onIndependent(effect, ctx): JokerGain \| null` |
-| blinds.ts | `targetScore(ante, blindIndex): number`, `blindReward(ante, blindIndex): number`, `blindName(blindIndex): string` |
+| blinds.ts | `targetScore(ante, blindIndex, bossMultiplier?): number`, `blindReward(ante, blindIndex): number`, `blindName(blindIndex): string`, `nextBlind(ante, blindIndex)` |
+| bosses.ts | `bossDef(id)`, `pickBoss(rngState, ante, seen)`, `isDebuffed(effect, card)`, `roundLimits(effect)`, `canPlayCount(effect, count)` |
 | economy.ts | `cashOutLines({ ante, blindIndex, handsLeft, money }): CashOut`, `interest(money): number` |
 | shop.ts | `rollOffers(rngState, count): [ShopOffer[], nextState]`, `offerPrice(offer)`, `sellValue(paid): number` |
-| run.ts | `newRun(seed): RunState`, `apply(state, action): RunState`, `currentTarget(state)`, `jokerDefs(owned)`, `canBuy(state, slot)` |
+| run.ts | `newRun(seed): RunState`, `apply(state, action): RunState`, `currentTarget(state)`, `jokerDefs(owned)`, `canBuy(state, slot)`, `canPlay(state)`, `activeBoss(state)` |
 | records.ts | `loadRecords(): Records`, `saveRun(state): Records` |
 
 ### 4.1 점수 계산 순서 (scoring.ts)
@@ -186,7 +190,7 @@ type Action =
 원작 순서를 따른다. 조커 순서가 결과를 바꾸므로 반드시 이 순서를 지킨다.
 
 1. 족보 기본 칩, 기본 배수 (레벨이 오른 만큼 data/hands.json의 레벨업 값을 더한다)
-2. 점수 카드를 왼쪽부터 하나씩: 카드 칩을 더하고, 그 카드에 반응하는 조커(`onCardScored`)를 왼쪽 조커부터 적용
+2. 점수 카드를 왼쪽부터 하나씩 (보스가 무효로 만든 카드는 칩도 조커 반응도 없이 넘어간다): 카드 칩을 더하고, 그 카드에 반응하는 조커(`onCardScored`)를 왼쪽 조커부터 적용
 3. 조커를 왼쪽부터 하나씩 독립 효과(`onIndependent`) 적용
 4. 총점 = 칩 x 배수 (내림)
 
@@ -318,3 +322,4 @@ type Action =
 | D-008 | 2026-10-21 | 기본 브랜치 이름을 main으로 | Vercel, GitHub 기본값과 맞춘다 |
 | D-009 | 2026-10-21 | 조커 그림은 배경을 지우지 않고 2:3 비율 그대로 쓴다 | 원본 배경(240,229,205)과 얼굴색(245,235,217)이 거의 같아 배경을 지우면 얼굴도 지워진다. 원본 비율이 2:3이라 자를 필요도 없다 |
 | D-010 | 2026-10-21 | 행성 카드는 사는 즉시 족보 레벨을 올린다. 소모품 칸은 만들지 않는다 | 원작은 소모품 칸에 보관했다가 쓰지만, 타로(F14)가 없는 지금은 보관할 이유가 없다. F14를 만들 때 소모품 칸을 함께 도입한다 |
+| D-011 | 2026-10-21 | 보스는 앤티가 바뀔 때 하나 고르고, 효과는 data/bosses.json의 종류 + 값으로 둔다. 훅과 앤티 8 전용 쇼다운 보스는 제외 | 조커와 같은 방식이라 보스 추가가 데이터 한 줄이 된다. 훅은 무작위 버림 처리가 따로 필요해 다음 작업으로 미룬다 |
