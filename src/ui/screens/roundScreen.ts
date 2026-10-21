@@ -1,11 +1,10 @@
-import { cardLabel } from "../../game/deck";
 import { evaluateHand } from "../../game/handEval";
 import { isDebuffed } from "../../game/bosses";
 import { RULES } from "../../game/rules";
 import { activeBoss, canPlay } from "../../game/run";
 import { handBase, handName } from "../../game/scoring";
 import type { RunState, ScoreResult } from "../../game/types";
-import { cardSvg } from "../cardView";
+import { cardName, cardSvg } from "../cardView";
 import { button, esc } from "../dom";
 
 function signed(value: number): string {
@@ -22,7 +21,7 @@ function scorePanel(score: ScoreResult | null): string {
       <li class="steps__row">
         <span class="steps__source">${esc(step.source)}${step.note ? `<small>${esc(step.note)}</small>` : ""}</span>
         <span class="steps__chips">${signed(step.chips)}</span>
-        <span class="steps__mult">${signed(step.mult)}</span>
+        <span class="steps__mult">${step.xMult !== undefined ? `x${step.xMult}` : signed(step.mult)}</span>
       </li>`,
     )
     .join("");
@@ -30,7 +29,7 @@ function scorePanel(score: ScoreResult | null): string {
     <section class="steps" aria-live="polite" aria-label="점수 계산 과정">
       <ol class="steps__list">${rows}</ol>
       <p class="steps__total">
-        <span class="cxm__chips">${score.chips}</span><span class="cxm__x">X</span><span class="cxm__mult">${score.mult}</span>
+        <span class="cxm__chips">${score.chips}</span><span class="cxm__x">X</span><span class="cxm__mult">${score.mult.toLocaleString("ko-KR", { maximumFractionDigits: 1 })}</span>
         <span class="steps__equals">= ${score.total.toLocaleString("ko-KR")}점</span>
       </p>
     </section>`;
@@ -56,7 +55,7 @@ export function renderRoundScreen(state: RunState): string {
       const debuffed = effect !== null && isDebuffed(effect, card);
       return button({
         action: { type: "toggle_card", cardId: card.id },
-        label: debuffed ? `${cardLabel(card)} (무효)` : cardLabel(card),
+        label: debuffed ? `${cardName(card)} (무효)` : cardName(card),
         html: cardSvg(card),
         className: `hand__card${selected ? " is-selected" : ""}${debuffed ? " is-debuffed" : ""}`,
         pressed: selected,

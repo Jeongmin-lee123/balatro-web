@@ -83,7 +83,7 @@ data/
 ├─ planets.json          행성 9종 (id, 이름, 올리는 족보, 가격, 그림 색)
 ├─ bosses.json           보스 12종 (id, 이름, 설명, 최소 앤티, 목표 배수, 효과)
 ├─ tags.json             태그 8종 (id, 이름, 설명, 최소 앤티, 효과)
-├─ tarots.json           타로 12종 (id, 이름, 로마 숫자, 가격, 설명, 효과)
+├─ tarots.json           타로 20종 (id, 이름, 로마 숫자, 가격, 설명, 효과)
 └─ faces.json            J, Q, K 도트 격자와 팔레트
 public/
 └─ jokers/<id>.png       처리된 조커 그림 (256 x 384, 16색, 배경 그대로)
@@ -116,7 +116,7 @@ ui/ 는 data/ 를 직접 읽지 않는다 (faces.json 제외, ui/faceArt.ts만 �
 type Suit = "spades" | "hearts" | "clubs" | "diamonds";
 type Rank = 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14; // 11=J, 12=Q, 13=K, 14=A
 
-interface Card { id: string; rank: Rank; suit: Suit }   // id 예: "hearts-13"
+interface Card { id: string; rank: Rank; suit: Suit; enhancement?: Enhancement }   // id 예: "hearts-13", 강화는 F15
 
 type HandType =
   | "high_card" | "pair" | "two_pair" | "three_of_a_kind" | "straight"
@@ -140,8 +140,8 @@ type JokerEffect =
 interface JokerDef { id: string; name: string; price: number; description: string; effect: JokerEffect }
 interface OwnedJoker { uid: string; defId: string; paid: number }  // 같은 조커를 두 장 가질 수 있어 uid를 따로 둔다
 
-interface ScoreStep { source: string; chips: number; mult: number; note: string }  // 화면의 계산 과정 한 줄
-interface ScoreResult { hand: HandResult; chips: number; mult: number; total: number; steps: ScoreStep[] }
+interface ScoreStep { source: string; chips: number; mult: number; xMult?: number; note: string }  // 화면의 계산 과정 한 줄, xMult는 곱하기
+interface ScoreResult { hand: HandResult; chips: number; mult: number; total: number; steps: ScoreStep[]; money: number; shattered: string[] }
 
 type Phase = "blind_select" | "round" | "cash_out" | "shop" | "won" | "lost";
 
@@ -203,8 +203,9 @@ type Action =
 
 1. 족보 기본 칩, 기본 배수 (레벨이 오른 만큼 data/hands.json의 레벨업 값을 더한다)
 2. 점수 카드를 왼쪽부터 하나씩 (보스가 무효로 만든 카드는 칩도 조커 반응도 없이 넘어간다): 카드 칩을 더하고, 그 카드에 반응하는 조커(`onCardScored`)를 왼쪽 조커부터 적용
-3. 조커를 왼쪽부터 하나씩 독립 효과(`onIndependent`) 적용
-4. 총점 = 칩 x 배수 (내림)
+3. 손에 들고 있는 강철 카드마다 배수 x1.5
+4. 조커를 왼쪽부터 하나씩 독립 효과(`onIndependent`) 적용
+5. 단계를 위에서부터 차례로 누적한다: 칩과 배수는 더하고, xMult가 있으면 그때까지의 배수에 곱한다. 총점 = 칩 x 배수 (내림)
 
 각 단계는 `ScoreStep` 한 줄로 남겨 화면에 그대로 보여 준다.
 
@@ -339,3 +340,4 @@ type Action =
 | D-013 | 2026-10-21 | 블라인드 선택 화면에 들어갈 때 손패를 미리 나눠 두고, 선택은 phase만 바꾼다. 저글링 태그만 선택 시점에 카드를 더 뽑는다 | round가 항상 유효한 값이라 화면과 저장이 단순해진다. 건너뛰기는 손패를 버리고 다음 블라인드의 손패를 새로 나눈다 |
 | D-014 | 2026-10-21 | 덱을 판 전체 상태(RunState.deck)로 두고 라운드마다 이 덱을 섞는다. 카드 id는 처음 이름을 유지한다 | 타로와 카드 강화(F15)가 바꾼 카드가 다음 라운드에도 남아야 한다. id를 바꾸지 않으면 손패와 덱의 같은 카드를 쉽게 찾는다 |
 | D-015 | 2026-10-21 | 타로 카드 그림은 로마 숫자와 이름을 쓴 글자 카드로 시작한다 | 조커처럼 ChatGPT 그림을 넣을 수 있지만 사람 작업이 필요하다. 글자 카드만으로도 구분이 된다 |
+| D-016 | 2026-10-21 | 점수는 단계 순서대로 누적한다 (더하기 다음 곱하기가 순서에 따라 결과가 달라진다) | 유리(x2), 강철(x1.5) 같은 곱하기 효과가 원작처럼 순서에 따라 다르게 계산되어야 한다. 덧셈만 있을 때는 예전 방식과 결과가 같다 |

@@ -42,7 +42,7 @@ function scoreBlock(state: RunState): string {
       <div class="cxm">
         <span class="cxm__chips">${last ? fmt(last.chips) : 0}</span>
         <span class="cxm__x">X</span>
-        <span class="cxm__mult">${last ? fmt(last.mult) : 0}</span>
+        <span class="cxm__mult">${last ? last.mult.toLocaleString("ko-KR", { maximumFractionDigits: 1 }) : 0}</span>
       </div>
     </div>`;
 }

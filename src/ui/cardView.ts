@@ -1,6 +1,6 @@
 // 트럼프 카드 SVG. 무늬는 SVG 경로로 그린다. 유니코드 무늬 기호는 기기에 따라 이모지로 바뀌어 보인다.
 import { cardLabel, rankLabel } from "../game/deck";
-import type { Card, Rank, Suit } from "../game/types";
+import type { Card, Enhancement, Rank, Suit } from "../game/types";
 import { facePortrait, hasFace } from "./faceArt";
 
 const SUIT_SHAPES: Record<Suit, string> = {
@@ -62,14 +62,51 @@ function cardCorner(card: Card): string {
   );
 }
 
+/** 강화 카드의 바탕색과 아래쪽에 적는 짧은 표시. 색은 tokens.css의 --enh-* 변수 */
+const ENHANCEMENT_LOOK: Record<Enhancement, { fill: string; mark: string; name: string }> = {
+  bonus: { fill: "var(--enh-bonus)", mark: "+30", name: "보너스" },
+  mult: { fill: "var(--enh-mult)", mark: "+4", name: "배수" },
+  wild: { fill: "var(--enh-wild)", mark: "와일드", name: "와일드" },
+  glass: { fill: "var(--enh-glass)", mark: "x2", name: "유리" },
+  steel: { fill: "var(--enh-steel)", mark: "x1.5", name: "강철" },
+  stone: { fill: "var(--enh-stone)", mark: "+50", name: "돌" },
+  gold: { fill: "var(--enh-gold)", mark: "$3", name: "금" },
+  lucky: { fill: "var(--enh-lucky)", mark: "행운", name: "행운" },
+};
+
+/** 읽기 도구용 이름. 예: "K 하트, 유리" */
+export function cardName(card: Card): string {
+  return card.enhancement && card.enhancement !== "stone" ? `${cardLabel(card)}, ${ENHANCEMENT_LOOK[card.enhancement].name}` : cardLabel(card);
+}
+
+function enhancementMark(enhancement: Enhancement): string {
+  return `<text x="50" y="135" text-anchor="middle" font-family="Galmuri11, monospace" font-weight="700" font-size="9" fill="var(--suit-black)">${ENHANCEMENT_LOOK[enhancement].mark}</text>`;
+}
+
+/** 돌 카드는 숫자와 무늬 없이 돌 무늬만 그린다 */
+function stoneFace(): string {
+  const specks = [
+    [22, 30], [64, 24], [40, 52], [76, 60], [28, 84], [58, 92], [44, 112], [72, 108],
+  ]
+    .map(([x, y]) => `<rect x="${x}" y="${y}" width="8" height="6" fill="var(--enh-stone-dark)"/>`)
+    .join("");
+  return specks + enhancementMark("stone");
+}
+
 export function cardSvg(card: Card): string {
+  const fill = card.enhancement ? ENHANCEMENT_LOOK[card.enhancement].fill : "var(--card)";
+  const background = `<rect x="1" y="1" width="98" height="138" rx="7" fill="${fill}" stroke="var(--card-edge)" stroke-width="2"/>`;
+  if (card.enhancement === "stone") {
+    return `<svg class="card-svg" viewBox="0 0 100 140" role="img" aria-label="${cardName(card)}">${background}${stoneFace()}</svg>`;
+  }
   const corner = cardCorner(card);
   return (
-    `<svg class="card-svg" viewBox="0 0 100 140" role="img" aria-label="${cardLabel(card)}">` +
-    '<rect x="1" y="1" width="98" height="138" rx="7" fill="var(--card)" stroke="var(--card-edge)" stroke-width="2"/>' +
+    `<svg class="card-svg" viewBox="0 0 100 140" role="img" aria-label="${cardName(card)}">` +
+    background +
     corner +
     `<g transform="rotate(180 50 70)">${corner}</g>` +
     cardCenter(card) +
+    (card.enhancement ? enhancementMark(card.enhancement) : "") +
     "</svg>"
   );
 }
