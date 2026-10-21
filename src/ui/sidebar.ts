@@ -47,8 +47,12 @@ export function renderSidebar(state: RunState): string {
     ${blindBlock(state)}
     ${inRound ? scoreBlock(state) : ""}
     <dl class="counters">
-      <div class="counter counter--hands"><dt>핸드</dt><dd>${state.round.handsLeft}</dd></div>
-      <div class="counter counter--discards"><dt>버리기</dt><dd>${state.round.discardsLeft}</dd></div>
+      ${
+        inRound
+          ? `<div class="counter counter--hands"><dt>핸드</dt><dd>${state.round.handsLeft}</dd></div>
+      <div class="counter counter--discards"><dt>버리기</dt><dd>${state.round.discardsLeft}</dd></div>`
+          : ""
+      }
       <div class="counter counter--money"><dt>돈</dt><dd>$${state.money}</dd></div>
       <div class="counter counter--ante"><dt>안테</dt><dd>${state.ante}<small>/${ANTE_COUNT}</small></dd></div>
     </dl>`;

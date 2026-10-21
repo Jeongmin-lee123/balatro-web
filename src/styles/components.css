@@ -262,7 +262,7 @@
 .joker__art {
   position: relative;
   width: min(100%, 106px);
-  aspect-ratio: 71 / 95;
+  aspect-ratio: 2 / 3;
   background: var(--card);
   border: 2px solid var(--card-edge);
   border-radius: 5px;
@@ -277,7 +277,6 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  image-rendering: pixelated;
 }
 
 .joker__fallback {
@@ -317,7 +316,7 @@
 .joker-slot {
   border: 2px dashed var(--panel-line);
   border-radius: 5px;
-  aspect-ratio: 71 / 95;
+  aspect-ratio: 2 / 3;
   max-width: 106px;
   width: 100%;
   justify-self: center;

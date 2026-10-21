@@ -34,9 +34,9 @@
 |---|---|---|---|---|---|
 | T-011 | cardView.ts, faceArt.ts, data/faces.json | F1 | AI | 완료 | T-005 |
 | T-012 | 테이블 배치, sidebar.ts, roundScreen.ts | F1, F3, F4 | AI | 완료 | T-010, T-011 |
-| T-013 | cashOutScreen.ts, shopScreen.ts, jokerView.ts | F6, F7, F8 | AI | 진행 중 | T-012 |
-| T-014 | endScreen.ts, storage/records.ts | F5, F9 | AI | 진행 중 | T-012 |
-| T-015 | 조커 그림 변환 스크립트, public/jokers 생성 | F8 | AI | 대기 | T-013 |
+| T-013 | cashOutScreen.ts, shopScreen.ts, jokerView.ts | F6, F7, F8 | AI | 완료 | T-012 |
+| T-014 | endScreen.ts, storage/records.ts | F5, F9 | AI | 완료 | T-012 |
+| T-015 | 조커 그림 변환 스크립트, public/jokers 생성 | F8 | AI | 완료 | T-013 |
 | T-016 | 조커 그림 나머지 생성 (5.3 표에서 "없음"인 것) | F8 | 사람 | 완료 | - |
 | T-017 | 휴대폰 화면 점검, 키보드 조작, README 실행 방법 | N8 | AI | 대기 | T-014 |
 
@@ -135,7 +135,7 @@ requirements.md 3.2의 F10~F18. 하나를 시작할 때 아래 양식으로 상�
 
 ### T-015 조커 그림 변환
 
-- 할 일: scripts/process-joker-art.mjs. art/jokers/*.png를 읽어 바깥 배경(크림색)을 가장자리부터 지우고, 71 x 95 안에 비율을 지켜 넣고, 색을 정리해 public/jokers/에 저장
+- 할 일: scripts/process-joker-art.mjs. art/jokers/*.png를 256 x 384로 최근접 축소하고 16색(디더링 없음)으로 정리해 public/jokers/에 저장. 배경은 지우지 않는다 (design.md D-009)
 - 완료 기준: 변환한 그림을 확대해 보았을 때 외곽선이 끊기지 않고 얼굴(배경과 비슷한 색)이 지워지지 않는다
 - 테스트 방법: 결과 PNG를 눈으로 확인
 - 주의할 그림

@@ -5,7 +5,7 @@
 
 ## 현재 상태 (2026-10-21 인계 시점)
 
-- 단계: 화면 구현 중 (라운드 화면 동작, 정산과 상점과 끝 화면은 확인 중)
+- 단계: 1차 기능 구현 완료, 마무리 점검(T-017) 전
 - 대상 게임: 발라트로 (Balatro). 규칙과 수치는 requirements.md 2.1 (위키 대조 완료)
 - 배포 주소: https://balatro-web-two.vercel.app (main에 push하면 자동 배포)
 - 저장소: https://github.com/Jeongmin-lee123/balatro-web (공개)
@@ -17,8 +17,8 @@
 | 게임 규칙 `src/game/` (T-005 ~ T-010) | 완료 | 화면 없이 테스트로 검증됨 |
 | 고정 자료 `data/` | 완료 | hands, blinds, rules, jokers, faces |
 | 조커 원본 그림 `art/jokers/` (T-016) | 완료 | 10장 모두 |
-| 화면 `src/ui/` (T-011 ~ T-014) | 진행 중 | T-011, T-012 완료. T-013, T-014 코드는 있고 브라우저 확인 중 |
-| 조커 그림 변환 (T-015) | 시작 전 | |
+| 화면 `src/ui/` (T-011 ~ T-014) | 완료 | 브라우저에서 라운드, 정산, 상점, 구매, 패배, 기록 확인 |
+| 조커 그림 변환 (T-015) | 완료 | npm run art. public/jokers 10장 140KB |
 | 배포 (T-004) | 완료 | GitHub main push -> Vercel 자동 배포 |
 
 ## 다음 할 일
@@ -90,3 +90,6 @@ npm run build      배포용 빌드 (dist/)
 | 2026-10-21 | T-004 | Claude | 사용자가 Vercel GitHub 앱 설치, vercel git connect 성공. main push 자동 배포 확인 |
 | 2026-10-21 | T-011 | Claude | ui/cardView.ts, ui/faceArt.ts. 견본 코드를 TypeScript로 이식, 귀퉁이 글꼴을 갈무리로. 테스트 8개 |
 | 2026-10-21 | T-012 | Claude | 라운드 화면. 버튼에 Action을 JSON으로 달고 루트 한 곳에서 클릭을 받는 구조(ui/dom.ts). 다시 그릴 때 키보드 초점 유지. 다음 블라인드 계산을 blinds.ts nextBlind로 합쳐 run.ts와 상점 화면이 같이 씀. 브라우저에서 선택, 미리보기, 플레이 확인 |
+| 2026-10-21 | T-013 | Claude | 정산, 상점, 조커 카드. 사이드바의 핸드/버리기는 라운드 중에만 표시 |
+| 2026-10-21 | T-014 | Claude | 끝 화면, storage/records.ts. 패배 후 역대 기록이 새로고침 뒤에도 남는 것 확인 |
+| 2026-10-21 | T-015 | Claude | 배경 지우기를 포기하고 2:3 그대로 256 x 384, 16색 변환 (design.md D-009) |

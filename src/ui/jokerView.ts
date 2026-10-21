@@ -9,7 +9,7 @@ export function jokerCard(def: JokerDef, footer: string): string {
     <article class="joker">
       <div class="joker__art">
         <span class="joker__fallback">${esc(def.name)}</span>
-        <img src="jokers/${esc(def.id)}.png" alt="" width="71" height="95" loading="lazy" onerror="this.remove()">
+        <img src="jokers/${esc(def.id)}.png" alt="" width="256" height="384" loading="lazy" onerror="this.remove()">
       </div>
       <h3 class="joker__name">${esc(def.name)}</h3>
       <p class="joker__desc">${esc(def.description)}</p>
