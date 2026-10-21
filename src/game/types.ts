@@ -83,6 +83,27 @@ export interface BossDef {
   effect: BossEffect;
 }
 
+export type TarotEffect =
+  | { kind: "convert_suit"; suit: Suit; max: number }
+  | { kind: "raise_rank"; max: number }
+  | { kind: "destroy"; max: number }
+  | { kind: "copy_left" }
+  | { kind: "double_money"; max: number }
+  | { kind: "joker_sell_value"; max: number }
+  | { kind: "create_tarots"; count: number }
+  | { kind: "create_joker" }
+  | { kind: "repeat_last" };
+
+export interface TarotDef {
+  id: string;
+  name: string;
+  /** 카드에 크게 쓰는 로마 숫자 */
+  numeral: string;
+  price: number;
+  description: string;
+  effect: TarotEffect;
+}
+
 export type TagEffect =
   | { kind: "double_money"; max: number }
   | { kind: "boss_bonus"; amount: number }
@@ -104,7 +125,7 @@ export interface TagDef {
 /** 족보별 레벨. 처음은 모두 1 */
 export type HandLevels = Record<HandType, number>;
 
-export type ShopItemKind = "joker" | "planet";
+export type ShopItemKind = "joker" | "tarot" | "planet";
 
 export interface ShopOffer {
   kind: ShopItemKind;
@@ -185,6 +206,12 @@ export interface RunState {
   blindIndex: BlindIndex;
   money: number;
   jokers: OwnedJoker[];
+  /** 이번 판의 덱 전체. 라운드마다 이 덱을 섞어 나눈다. 타로가 바꾼 카드는 여기에 남는다 */
+  deck: Card[];
+  /** 소모품 칸의 타로 id */
+  consumables: string[];
+  /** 마지막으로 쓴 타로 (바보 제외). 바보 카드가 만든다 */
+  lastTarot: string | null;
   handLevels: HandLevels;
   /** 이번 앤티의 보스 id. 앤티가 바뀔 때 새로 고른다 */
   boss: string;
@@ -214,5 +241,7 @@ export type Action =
   | { type: "move_joker"; uid: string; to: number }
   | { type: "next_round" }
   | { type: "select_blind" }
+  | { type: "use_consumable"; index: number }
+  | { type: "sell_consumable"; index: number }
   | { type: "skip_blind" }
   | { type: "new_run"; seed?: number };

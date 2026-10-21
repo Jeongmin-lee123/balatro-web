@@ -1,8 +1,10 @@
 import { nextRandom } from "./rng";
-import { JOKER_IDS, JOKERS, PLANET_IDS, PLANETS, RULES } from "./rules";
+import { JOKER_IDS, JOKERS, PLANET_IDS, PLANETS, RULES, TAROT_IDS, TAROTS } from "./rules";
 import type { ShopItemKind, ShopOffer } from "./types";
 
-const ITEM_IDS: Record<ShopItemKind, string[]> = { joker: JOKER_IDS, planet: PLANET_IDS };
+const ITEM_IDS: Record<ShopItemKind, string[]> = { joker: JOKER_IDS, tarot: TAROT_IDS, planet: PLANET_IDS };
+
+const ITEMS = { joker: JOKERS, tarot: TAROTS, planet: PLANETS };
 
 /** rules.json의 shopWeights 비율로 종류를 고른 뒤, 그 종류 안에서 고르게 하나를 고른다 */
 function rollOne(rngState: number): [ShopOffer, number] {
@@ -31,7 +33,7 @@ export function rollOffers(rngState: number, count: number): [ShopOffer[], numbe
 
 export function offerPrice(offer: ShopOffer): number {
   if (offer.price !== undefined) return offer.price;
-  const def = offer.kind === "joker" ? JOKERS[offer.id] : PLANETS[offer.id];
+  const def = ITEMS[offer.kind][offer.id];
   if (!def) throw new Error(`없는 상품: ${offer.kind} ${offer.id}`);
   return def.price;
 }

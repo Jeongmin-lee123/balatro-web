@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { JOKER_IDS, PLANET_IDS, RULES } from "../../src/game/rules";
+import { JOKER_IDS, PLANET_IDS, RULES, TAROT_IDS } from "../../src/game/rules";
 import { offerPrice, rollOffers, sellValue } from "../../src/game/shop";
+import type { ShopItemKind } from "../../src/game/types";
+
+const IDS: Record<ShopItemKind, string[]> = { joker: JOKER_IDS, tarot: TAROT_IDS, planet: PLANET_IDS };
 
 describe("rollOffers", () => {
   it("같은 시드면 같은 진열", () => {
@@ -10,30 +13,34 @@ describe("rollOffers", () => {
   it("요청한 칸 수만큼, 종류에 맞는 id로", () => {
     const [offers] = rollOffers(5, 50);
     expect(offers).toHaveLength(50);
-    for (const offer of offers) {
-      expect(offer.kind === "joker" ? JOKER_IDS : PLANET_IDS).toContain(offer.id);
+    for (const offer of offers) expect(IDS[offer.kind]).toContain(offer.id);
+  });
+
+  it("종류마다 rules.json shopWeights 비율 근처로 나온다", () => {
+    const [offers] = rollOffers(1, 2800);
+    const weights = Object.entries(RULES.shopWeights) as [ShopItemKind, number][];
+    const total = weights.reduce((sum, [, w]) => sum + w, 0);
+    for (const [kind, weight] of weights) {
+      const count = offers.filter((offer) => offer.kind === kind).length;
+      expect(count).toBeGreaterThan(2800 * (weight / total) * 0.8);
+      expect(count).toBeLessThan(2800 * (weight / total) * 1.2);
     }
   });
 
-  it("조커와 행성이 rules.json 비율(20 : 4) 근처로 나온다", () => {
-    const [offers] = rollOffers(1, 2400);
-    const planets = offers.filter((offer) => offer.kind === "planet").length;
-    const expected = 2400 * (RULES.shopWeights.planet / (RULES.shopWeights.joker + RULES.shopWeights.planet));
-    expect(planets).toBeGreaterThan(expected * 0.8);
-    expect(planets).toBeLessThan(expected * 1.2);
-  });
-
-  it("여러 번 굴리면 모든 조커와 행성이 나올 수 있다", () => {
-    const [offers] = rollOffers(1, 2000);
-    expect(new Set(offers.filter((o) => o.kind === "joker").map((o) => o.id)).size).toBe(JOKER_IDS.length);
-    expect(new Set(offers.filter((o) => o.kind === "planet").map((o) => o.id)).size).toBe(PLANET_IDS.length);
+  it("여러 번 굴리면 모든 상품이 나올 수 있다", () => {
+    const [offers] = rollOffers(1, 3000);
+    for (const kind of Object.keys(IDS) as ShopItemKind[]) {
+      expect(new Set(offers.filter((o) => o.kind === kind).map((o) => o.id)).size).toBe(IDS[kind].length);
+    }
   });
 });
 
 describe("offerPrice", () => {
-  it("조커는 조커 가격, 행성은 $3", () => {
+  it("조커는 조커 가격, 타로와 행성은 $3, 덮어쓴 가격이 있으면 그 가격", () => {
     expect(offerPrice({ kind: "joker", id: "greedy_joker" })).toBe(5);
+    expect(offerPrice({ kind: "tarot", id: "star" })).toBe(3);
     expect(offerPrice({ kind: "planet", id: "neptune" })).toBe(3);
+    expect(offerPrice({ kind: "joker", id: "greedy_joker", price: 0 })).toBe(0);
   });
 
   it("없는 상품은 오류", () => {

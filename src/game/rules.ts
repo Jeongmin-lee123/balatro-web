@@ -6,7 +6,8 @@ import jokersJson from "../../data/jokers.json";
 import planetsJson from "../../data/planets.json";
 import bossesJson from "../../data/bosses.json";
 import tagsJson from "../../data/tags.json";
-import type { BossDef, HandType, JokerDef, PlanetDef, ShopItemKind, TagDef } from "./types";
+import tarotsJson from "../../data/tarots.json";
+import type { BossDef, HandType, JokerDef, PlanetDef, ShopItemKind, TagDef, TarotDef } from "./types";
 
 export interface HandInfo {
   name: string;
@@ -40,6 +41,12 @@ const planetList = planetsJson as PlanetDef[];
 export const PLANETS: Record<string, PlanetDef> = Object.fromEntries(planetList.map((planet) => [planet.id, planet]));
 
 export const PLANET_IDS: string[] = planetList.map((planet) => planet.id);
+
+const tarotList = tarotsJson as TarotDef[];
+
+export const TAROTS: Record<string, TarotDef> = Object.fromEntries(tarotList.map((tarot) => [tarot.id, tarot]));
+
+export const TAROT_IDS: string[] = tarotList.map((tarot) => tarot.id);
 
 /** data/bosses.json 순서 그대로. 보스 고르기의 후보 순서가 바뀌지 않게 한다 */
 export const BOSS_LIST = bossesJson as BossDef[];

@@ -4,7 +4,7 @@ import type { RunState } from "../game/types";
 const STORAGE_KEY = "balatro-web/run";
 
 /** RunState 모양을 바꾸면 올린다. 버전이 다른 저장은 버린다 */
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 
 interface SaveFile {
   version: number;
@@ -21,6 +21,8 @@ function looksLikeRun(value: unknown): value is RunState {
     typeof state.boss === "string" &&
     typeof state.handLevels === "object" &&
     Array.isArray(state.jokers) &&
+    Array.isArray(state.deck) &&
+    Array.isArray(state.consumables) &&
     Array.isArray(state.round?.hand)
   );
 }

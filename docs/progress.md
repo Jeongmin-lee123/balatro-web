@@ -106,3 +106,4 @@ npm run build      배포용 빌드 (dist/)
 | 2026-10-21 | T-023 | Claude | 블라인드 선택 화면(phase blind_select), 건너뛰기와 태그 8종. 저장 형식 변경으로 SAVE_VERSION 2. 브라우저에서 선택, 건너뛰기, 보관 태그 표시 확인 (D-013) |
 | 2026-10-21 | T-024 | Claude | 갈고리(훅) 보스. takeSelected에 무작위 추가 버림을 넣어 플레이 순서(낸 카드 빼기, 2장 버리기, 다시 채우기)를 원작대로 |
 | 2026-10-21 | T-025 | Claude | 600px 미만에서 손패를 겹쳐 놓아 카드 폭 40px -> 65px, 빈 조커 칸은 20px 띠로. 375px 프레임에서 한 줄, 가로 스크롤 없음 확인 |
+| 2026-10-21 | T-026 | Claude | 판 전체 덱(state.deck), 소모품 칸 2, 타로 12종 규칙(game/tarots.ts, data/tarots.json). 상점 비율 조커 20 : 타로 4 : 행성 4. SAVE_VERSION 3. 화면은 다음 커밋 |

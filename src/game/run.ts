@@ -10,10 +10,12 @@ import { ANTE_COUNT, HAND_TYPES, JOKERS, PLANETS, RULES } from "./rules";
 import { scoreHand } from "./scoring";
 import { offerPrice, rollOffers, sellValue } from "./shop";
 import { instantMoney, pickBlindTags, tagDef, takeTags } from "./tags";
+import { tarotDef, useTarot } from "./tarots";
 import type {
   Action,
   BlindIndex,
   BossDef,
+  Card,
   CashOut,
   HandLevels,
   JokerDef,
@@ -24,8 +26,8 @@ import type {
   SortBy,
 } from "./types";
 
-function dealRound(rngState: number, sortBy: SortBy, boss: BossDef | null): { round: RoundState; rngState: number } {
-  const [deck, next] = shuffle(createDeck(), rngState);
+function dealRound(rngState: number, sortBy: SortBy, boss: BossDef | null, fullDeck: readonly Card[]): { round: RoundState; rngState: number } {
+  const [deck, next] = shuffle(fullDeck, rngState);
   const limits = roundLimits(boss?.effect ?? null);
   const { drawn, rest } = drawCards(deck, RULES.handSize);
   return {
@@ -60,7 +62,7 @@ function enterBlind(state: RunState, ante: number, blindIndex: BlindIndex, newAn
     ({ boss, seen: bossesSeen } = pickedBoss);
     ({ tags: blindTags, rngState } = pickedTags);
   }
-  const dealt = dealRound(rngState, state.round.sortBy, activeBoss({ blindIndex, boss }));
+  const dealt = dealRound(rngState, state.round.sortBy, activeBoss({ blindIndex, boss }), state.deck);
   return {
     ...state,
     phase: "blind_select",
@@ -85,6 +87,9 @@ export function newRun(seed: number): RunState {
     blindIndex: 0,
     money: RULES.startingMoney,
     jokers: [],
+    deck: createDeck(),
+    consumables: [],
+    lastTarot: null,
     handLevels: Object.fromEntries(HAND_TYPES.map((type) => [type, 1])) as HandLevels,
     boss: "",
     bossesSeen: [],
@@ -235,7 +240,9 @@ function collect(state: RunState): RunState {
 export function canBuy(state: RunState, slot: number): boolean {
   const offer = state.shop?.offers[slot];
   if (!offer || state.money < offerPrice(offer)) return false;
-  return offer.kind !== "joker" || state.jokers.length < RULES.jokerSlots;
+  if (offer.kind === "joker") return state.jokers.length < RULES.jokerSlots;
+  if (offer.kind === "tarot") return state.consumables.length < RULES.consumableSlots;
+  return true;
 }
 
 function buy(state: RunState, slot: number): RunState {
@@ -248,6 +255,7 @@ function buy(state: RunState, slot: number): RunState {
     shop: { ...state.shop, offers: state.shop.offers.map((item, i) => (i === slot ? null : item)) },
   };
 
+  if (offer.kind === "tarot") return { ...bought, consumables: [...state.consumables, offer.id] };
   if (offer.kind === "planet") {
     // 소모품 칸 없이 사는 즉시 레벨을 올린다 (design.md D-010)
     const hand = (PLANETS[offer.id] as PlanetDef).hand;
@@ -264,6 +272,16 @@ function sell(state: RunState, uid: string): RunState {
   const joker = state.jokers.find((owned) => owned.uid === uid);
   if (!joker) return state;
   return { ...state, money: state.money + sellValue(joker.paid), jokers: state.jokers.filter((owned) => owned.uid !== uid) };
+}
+
+function sellConsumable(state: RunState, index: number): RunState {
+  const id = state.consumables[index];
+  if (!id) return state;
+  return {
+    ...state,
+    money: state.money + sellValue(tarotDef(id).price),
+    consumables: state.consumables.filter((_, i) => i !== index),
+  };
 }
 
 function reroll(state: RunState): RunState {
@@ -308,6 +326,8 @@ const ALLOWED: Record<Action["type"], readonly RunState["phase"][]> = {
   collect: ["cash_out"],
   buy: ["shop"],
   sell: ["blind_select", "round", "shop"],
+  use_consumable: ["blind_select", "round", "shop"],
+  sell_consumable: ["blind_select", "round", "shop"],
   reroll: ["shop"],
   move_joker: ["blind_select", "round", "shop"],
   next_round: ["shop"],
@@ -336,6 +356,10 @@ export function apply(state: RunState, action: Action): RunState {
       return buy(state, action.slot);
     case "sell":
       return sell(state, action.uid);
+    case "use_consumable":
+      return useTarot(state, action.index);
+    case "sell_consumable":
+      return sellConsumable(state, action.index);
     case "reroll":
       return reroll(state);
     case "move_joker":

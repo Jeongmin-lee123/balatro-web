@@ -13,6 +13,8 @@
   "rerollStep": 1,
   "shopWeights": {
     "joker": 20,
+    "tarot": 4,
     "planet": 4
-  }
+  },
+  "consumableSlots": 2
 }
