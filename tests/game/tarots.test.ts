@@ -139,7 +139,7 @@ describe("언제든 쓰는 타로", () => {
 describe("판 전체 덱", () => {
   it("타로로 바꾼 카드는 다음 라운드 덱에도 남는다", () => {
     const used = useTarot(pick(withTarots(["star"]), "hearts-13"), 0);
-    const shop: RunState = { ...used, phase: "shop", shop: { offers: [], rerollCost: 5 } };
+    const shop: RunState = { ...used, phase: "shop", shop: { offers: [], rerollCost: 5, packs: [] } };
     const next = apply(shop, { type: "next_round" });
     const all = [...next.round.hand, ...next.round.drawPile];
     expect(all).toHaveLength(52);
@@ -147,7 +147,7 @@ describe("판 전체 덱", () => {
   });
 
   it("상점에서 타로를 사면 소모품 칸에, 칸이 차면 못 산다. 팔면 $1", () => {
-    const shop: RunState = { ...withTarots([]), phase: "shop", money: 10, shop: { offers: [{ kind: "tarot", id: "sun" }], rerollCost: 5 } };
+    const shop: RunState = { ...withTarots([]), phase: "shop", money: 10, shop: { offers: [{ kind: "tarot", id: "sun" }], rerollCost: 5, packs: [] } };
     const bought = apply(shop, { type: "buy", slot: 0 });
     expect(bought).toMatchObject({ money: 7, consumables: ["sun"] });
     const full = { ...shop, consumables: ["star", "moon"] };

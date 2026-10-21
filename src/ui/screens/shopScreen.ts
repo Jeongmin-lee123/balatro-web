@@ -8,6 +8,7 @@ import type { RunState, ShopOffer } from "../../game/types";
 import { button, esc } from "../dom";
 import { jokerCard } from "../jokerView";
 import { planetCard } from "../planetView";
+import { packOfferCard } from "./packScreen";
 import { tarotCard } from "../tarotView";
 
 function blockedReason(state: RunState, offer: ShopOffer): string {
@@ -53,6 +54,7 @@ export function renderShopScreen(state: RunState): string {
     <section class="panel shop" aria-labelledby="shop-title">
       <h2 id="shop-title" class="panel__title">상점</h2>
       <div class="shop__offers">${shop.offers.map((offer, slot) => offerCard(state, offer, slot)).join("")}</div>
+      <div class="shop__packs" aria-label="부스터 팩">${shop.packs.map((offer, slot) => packOfferCard(state, offer, slot)).join("")}</div>
       <div class="shop__actions">
         ${button({
           action: { type: "reroll" },

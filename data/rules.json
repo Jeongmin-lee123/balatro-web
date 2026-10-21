@@ -16,5 +16,7 @@
     "tarot": 4,
     "planet": 4
   },
-  "consumableSlots": 2
+  "consumableSlots": 2,
+  "packSlots": 2,
+  "standardEnhanceChance": 0.4
 }

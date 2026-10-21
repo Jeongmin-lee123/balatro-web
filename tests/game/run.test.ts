@@ -163,7 +163,7 @@ describe("정산과 상점", () => {
     const full = {
       ...shop,
       jokers: Array.from({ length: RULES.jokerSlots }, (_, i) => ({ uid: `x${i}`, defId: "joker", paid: 2 })),
-      shop: { offers: [{ kind: "joker" as const, id: "joker", edition: "negative" as const }], rerollCost: 5 },
+      shop: { offers: [{ kind: "joker" as const, id: "joker", edition: "negative" as const }], rerollCost: 5, packs: [] },
     };
     const bought = apply(full, { type: "buy", slot: 0 });
     expect(bought.jokers).toHaveLength(RULES.jokerSlots + 1);
@@ -203,14 +203,14 @@ describe("정산과 상점", () => {
 describe("보스 블라인드", () => {
   /** 빅 블라인드 뒤 상점에서 다음 라운드를 누르고 보스를 선택해, 정한 보스의 라운드를 시작한 상태 */
   function atBoss(boss: string, ante = 2): RunState {
-    const shop: RunState = { ...newRun(5), phase: "shop", ante, blindIndex: 1, boss, shop: { offers: [], rerollCost: 5 } };
+    const shop: RunState = { ...newRun(5), phase: "shop", ante, blindIndex: 1, boss, shop: { offers: [], rerollCost: 5, packs: [] } };
     return run(shop, { type: "next_round" }, { type: "select_blind" });
   }
 
   it("같은 앤티 안에서는 보스가 그대로, 앤티가 바뀌면 새로 고른다", () => {
     const boss = atBoss("wall");
     expect(boss).toMatchObject({ blindIndex: 2, boss: "wall" });
-    const nextAnte = apply({ ...boss, phase: "shop", shop: { offers: [], rerollCost: 5 } }, { type: "next_round" });
+    const nextAnte = apply({ ...boss, phase: "shop", shop: { offers: [], rerollCost: 5, packs: [] } }, { type: "next_round" });
     expect(nextAnte).toMatchObject({ ante: 3, blindIndex: 0 });
     expect(nextAnte.bossesSeen.length).toBeGreaterThan(boss.bossesSeen.length);
   });

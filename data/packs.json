@@ -1,0 +1,6 @@
+[
+  { "id": "arcana", "name": "아르카나 팩", "description": "타로 3장 중 1장을 고른다", "price": 4, "choices": 3, "weight": 4, "content": "tarot" },
+  { "id": "celestial", "name": "천체 팩", "description": "행성 3장 중 1장을 고른다", "price": 4, "choices": 3, "weight": 4, "content": "planet" },
+  { "id": "standard", "name": "스탠다드 팩", "description": "카드 3장 중 1장을 덱에 넣는다", "price": 4, "choices": 3, "weight": 4, "content": "card" },
+  { "id": "buffoon", "name": "광대 팩", "description": "조커 2장 중 1장을 고른다", "price": 4, "choices": 2, "weight": 1.2, "content": "joker" }
+]

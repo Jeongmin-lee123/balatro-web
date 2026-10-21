@@ -39,6 +39,10 @@
   --ed-poly-b: #e8c547;
   --ed-poly-c: #4f9ac9;
   --ed-negative: #2a2238;
+  --pack-tarot: #3b2a5c;
+  --pack-planet: #1a2236;
+  --pack-card: #6b4a2a;
+  --pack-joker: #8e2a22;
 
   /* 갈무리는 정해진 크기의 배수에서 가장 선명하다. Galmuri14는 15px, Galmuri11은 12px 기준. */
   --font-body: "Galmuri14", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;

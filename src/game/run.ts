@@ -4,10 +4,11 @@ import { nextBlind, targetScore } from "./blinds";
 import { bossDef, canPlayCount, isDebuffed, pickBoss, roundLimits } from "./bosses";
 import { createDeck, drawCards, sortHand } from "./deck";
 import { cashOutLines } from "./economy";
-import { jokerSlots } from "./editions";
+import { addJoker, hasJokerRoom, usePlanet } from "./inventory";
 import { evaluateHand } from "./handEval";
 import { nextRandom, shuffle } from "./rng";
-import { ANTE_COUNT, HAND_TYPES, JOKERS, PLANETS, RULES } from "./rules";
+import { openPack, packPrice, pickFromPack, rollPacks } from "./packs";
+import { ANTE_COUNT, HAND_TYPES, JOKERS, RULES } from "./rules";
 import { scoreHand } from "./scoring";
 import { offerPrice, rollOffers, sellValue } from "./shop";
 import { instantMoney, pickBlindTags, tagDef, takeTags } from "./tags";
@@ -21,7 +22,6 @@ import type {
   HandLevels,
   JokerDef,
   OwnedJoker,
-  PlanetDef,
   RoundState,
   RunState,
   SortBy,
@@ -100,6 +100,7 @@ export function newRun(seed: number): RunState {
     round: { drawPile: [], hand: [], selected: [], handsLeft: 0, discardsLeft: 0, score: 0, lastScore: null, sortBy: "rank" },
     cashOut: null,
     shop: null,
+    pack: null,
     stats: { bestHand: 0, handsPlayed: 0, skips: 0, unusedDiscards: 0 },
   };
   return enterBlind(blank, 1, 0, true);
@@ -245,13 +246,14 @@ function discard(state: RunState): RunState {
   return { ...state, round: { ...round, discardsLeft: state.round.discardsLeft - 1 } };
 }
 
-/** 정산을 받고 상점으로. 쿠폰 태그는 처음 진열을 무료로, 주사위 태그는 다시 굴리기를 $0부터 */
+/** 정산을 받고 상점으로. 쿠폰 태그는 처음 진열과 팩을 무료로, 주사위 태그는 다시 굴리기를 $0부터 */
 function collect(state: RunState): RunState {
   if (!state.cashOut) return state;
-  const [rolled, rngState] = rollOffers(state.rngState, RULES.shopSlots);
+  const [rolled, afterOffers] = rollOffers(state.rngState, RULES.shopSlots);
+  const [rolledPacks, rngState] = rollPacks(afterOffers, RULES.packSlots);
   const coupon = takeTags(state.tags, "free_shop");
   const d6 = takeTags(coupon.rest, "free_reroll");
-  const offers = coupon.taken.length > 0 ? rolled.map((offer) => ({ ...offer, price: 0 })) : rolled;
+  const free = coupon.taken.length > 0;
   return {
     ...state,
     rngState,
@@ -259,16 +261,31 @@ function collect(state: RunState): RunState {
     money: state.money + state.cashOut.total,
     cashOut: null,
     tags: d6.rest,
-    shop: { offers, rerollCost: d6.taken.length > 0 ? 0 : RULES.rerollBase },
+    shop: {
+      offers: free ? rolled.map((offer) => ({ ...offer, price: 0 })) : rolled,
+      packs: free ? rolledPacks.map((pack) => ({ ...pack, price: 0 })) : rolledPacks,
+      rerollCost: d6.taken.length > 0 ? 0 : RULES.rerollBase,
+    },
   };
+}
+
+function buyPack(state: RunState, slot: number): RunState {
+  const offer = state.shop?.packs[slot];
+  if (!state.shop || !offer || state.money < packPrice(offer)) return state;
+  const paid: RunState = {
+    ...state,
+    money: state.money - packPrice(offer),
+    shop: { ...state.shop, packs: state.shop.packs.map((pack, i) => (i === slot ? null : pack)) },
+  };
+  const opened = openPack(paid, offer.id);
+  return { ...paid, phase: "pack_open", pack: opened.pack, rngState: opened.rngState, nextUid: opened.nextUid };
 }
 
 /** 상점 칸이 지금 살 수 있는 상태인지. 화면의 버튼 비활성화도 이 함수를 쓴다 */
 export function canBuy(state: RunState, slot: number): boolean {
   const offer = state.shop?.offers[slot];
   if (!offer || state.money < offerPrice(offer)) return false;
-  // 네거티브 조커는 칸을 하나 더 만들어 주므로 칸이 차 있어도 살 수 있다
-  if (offer.kind === "joker") return offer.edition === "negative" || state.jokers.length < jokerSlots(state.jokers);
+  if (offer.kind === "joker") return hasJokerRoom(state, offer.edition);
   if (offer.kind === "tarot") return state.consumables.length < RULES.consumableSlots;
   return true;
 }
@@ -284,16 +301,8 @@ function buy(state: RunState, slot: number): RunState {
   };
 
   if (offer.kind === "tarot") return { ...bought, consumables: [...state.consumables, offer.id] };
-  if (offer.kind === "planet") {
-    // 소모품 칸 없이 사는 즉시 레벨을 올린다 (design.md D-010)
-    const hand = (PLANETS[offer.id] as PlanetDef).hand;
-    return { ...bought, handLevels: { ...state.handLevels, [hand]: state.handLevels[hand] + 1 } };
-  }
-  return {
-    ...bought,
-    jokers: [...state.jokers, { uid: `j${state.nextUid}`, defId: offer.id, paid: price, ...(offer.edition ? { edition: offer.edition } : {}) }],
-    nextUid: state.nextUid + 1,
-  };
+  if (offer.kind === "planet") return { ...bought, handLevels: usePlanet(state.handLevels, offer.id) };
+  return addJoker(bought, offer.id, price, offer.edition);
 }
 
 function sell(state: RunState, uid: string): RunState {
@@ -319,7 +328,7 @@ function reroll(state: RunState): RunState {
     ...state,
     rngState,
     money: state.money - state.shop.rerollCost,
-    shop: { offers, rerollCost: state.shop.rerollCost + RULES.rerollStep },
+    shop: { ...state.shop, offers, rerollCost: state.shop.rerollCost + RULES.rerollStep },
   };
 }
 
@@ -353,13 +362,16 @@ const ALLOWED: Record<Action["type"], readonly RunState["phase"][]> = {
   sort: ["round"],
   collect: ["cash_out"],
   buy: ["shop"],
-  sell: ["blind_select", "round", "shop"],
+  buy_pack: ["shop"],
+  pick_pack: ["pack_open"],
+  skip_pack: ["pack_open"],
+  sell: ["blind_select", "round", "shop", "pack_open"],
   use_consumable: ["blind_select", "round", "shop"],
-  sell_consumable: ["blind_select", "round", "shop"],
+  sell_consumable: ["blind_select", "round", "shop", "pack_open"],
   reroll: ["shop"],
-  move_joker: ["blind_select", "round", "shop"],
+  move_joker: ["blind_select", "round", "shop", "pack_open"],
   next_round: ["shop"],
-  new_run: ["blind_select", "round", "cash_out", "shop", "won", "lost"],
+  new_run: ["blind_select", "round", "cash_out", "shop", "pack_open", "won", "lost"],
 };
 
 export function apply(state: RunState, action: Action): RunState {
@@ -390,6 +402,12 @@ export function apply(state: RunState, action: Action): RunState {
       return sellConsumable(state, action.index);
     case "reroll":
       return reroll(state);
+    case "buy_pack":
+      return buyPack(state, action.slot);
+    case "pick_pack":
+      return pickFromPack(state, action.index);
+    case "skip_pack":
+      return { ...state, phase: "shop", pack: null };
     case "move_joker":
       return moveJoker(state, action.uid, action.to);
     case "next_round":

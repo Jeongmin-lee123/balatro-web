@@ -190,7 +190,7 @@ export interface ScoreResult {
   shattered: string[];
 }
 
-export type Phase = "blind_select" | "round" | "cash_out" | "shop" | "won" | "lost";
+export type Phase = "blind_select" | "round" | "cash_out" | "shop" | "pack_open" | "won" | "lost";
 
 export type BlindIndex = 0 | 1 | 2;
 
@@ -215,9 +215,41 @@ export interface CashOut {
   total: number;
 }
 
+export type PackContent = "tarot" | "planet" | "card" | "joker";
+
+export interface PackDef {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  /** 보여 주는 장수. 그중 1장을 고른다 */
+  choices: number;
+  weight: number;
+  content: PackContent;
+}
+
+export interface PackOffer {
+  id: string;
+  /** 정가 대신 받는 가격 (쿠폰 태그면 0) */
+  price?: number;
+}
+
+export type PackChoice =
+  | { kind: "tarot"; id: string }
+  | { kind: "planet"; id: string }
+  | { kind: "joker"; id: string; edition?: EditionId }
+  | { kind: "card"; card: Card };
+
+export interface OpenPack {
+  id: string;
+  choices: PackChoice[];
+}
+
 export interface ShopState {
   /** 산 칸은 null */
   offers: (ShopOffer | null)[];
+  /** 부스터 팩 칸. 다시 굴리기로 바뀌지 않는다. 산 칸은 null */
+  packs: (PackOffer | null)[];
   rerollCost: number;
 }
 
@@ -259,6 +291,8 @@ export interface RunState {
   round: RoundState;
   cashOut: CashOut | null;
   shop: ShopState | null;
+  /** 연 부스터 팩. phase가 pack_open일 때만 있다 */
+  pack: OpenPack | null;
   stats: RunStats;
 }
 
@@ -271,6 +305,9 @@ export type Action =
   | { type: "buy"; slot: number }
   | { type: "sell"; uid: string }
   | { type: "reroll" }
+  | { type: "buy_pack"; slot: number }
+  | { type: "pick_pack"; index: number }
+  | { type: "skip_pack" }
   | { type: "move_joker"; uid: string; to: number }
   | { type: "next_round" }
   | { type: "select_blind" }

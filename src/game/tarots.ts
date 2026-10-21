@@ -1,7 +1,7 @@
 // 타로 카드. 고른 카드를 바꾸는 타로는 라운드 중에만, 나머지는 블라인드 선택, 라운드, 상점에서 쓴다.
 // 카드를 바꾸면 손패와 판 전체 덱(state.deck)을 함께 바꿔 다음 라운드에도 남게 한다.
 import { sortHand } from "./deck";
-import { jokerSlots } from "./editions";
+import { addJoker, hasJokerRoom } from "./inventory";
 import { nextRandom } from "./rng";
 import { JOKER_IDS, JOKERS, RULES, TAROT_IDS, TAROTS } from "./rules";
 import { sellValue } from "./shop";
@@ -50,7 +50,7 @@ export function canUseTarot(state: RunState, index: number): boolean {
     const count = state.round.selected.length;
     return state.phase === "round" && count >= range.min && count <= range.max;
   }
-  if (effect.kind === "create_joker") return state.jokers.length < jokerSlots(state.jokers);
+  if (effect.kind === "create_joker") return hasJokerRoom(state);
   if (effect.kind === "add_edition") return state.jokers.some((joker) => !joker.edition);
   if (effect.kind === "repeat_last") return state.lastTarot !== null && roomAfterUse(state) > 0;
   return true;
@@ -118,9 +118,7 @@ function applyEffect(state: RunState, effect: TarotEffect): RunState {
     case "create_joker": {
       const [[id], rngState] = randomIds(JOKER_IDS, 1, state.rngState);
       const def = JOKERS[id as string];
-      if (!def) return state;
-      const joker = { uid: `j${state.nextUid}`, defId: def.id, paid: def.price };
-      return { ...state, rngState, jokers: [...state.jokers, joker], nextUid: state.nextUid + 1 };
+      return def ? addJoker({ ...state, rngState }, def.id, def.price) : state;
     }
     case "repeat_last":
       return state.lastTarot ? { ...state, consumables: [...state.consumables, state.lastTarot] } : state;

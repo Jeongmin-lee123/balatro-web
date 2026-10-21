@@ -7,6 +7,7 @@ import { renderJokerRow } from "./jokerView";
 import { renderBlindSelectScreen } from "./screens/blindSelectScreen";
 import { renderCashOutScreen } from "./screens/cashOutScreen";
 import { renderEndScreen } from "./screens/endScreen";
+import { renderPackScreen } from "./screens/packScreen";
 import { renderRoundScreen } from "./screens/roundScreen";
 import { renderShopScreen } from "./screens/shopScreen";
 import { renderSidebar } from "./sidebar";
@@ -22,6 +23,8 @@ function mainArea(state: RunState, records: Records): string {
       return renderCashOutScreen(state);
     case "shop":
       return renderShopScreen(state);
+    case "pack_open":
+      return renderPackScreen(state);
     case "won":
     case "lost":
       return renderEndScreen(state, records);
