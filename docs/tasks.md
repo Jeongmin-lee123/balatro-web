@@ -97,11 +97,53 @@ requirements.md 3.2의 F10~F18. 하나를 시작할 때 아래 양식으로 상�
 - 완료 기준: 정해진 시드와 행동 목록으로 한 판을 끝까지 돌리는 테스트가 통과한다. 허용되지 않는 행동은 상태를 그대로 돌려준다
 - 테스트 방법: tests/game/run.test.ts
 
+### T-011 카드 그림
+
+- 할 일: `ui/cardView.ts`(트럼프 카드 SVG 문자열), `ui/faceArt.ts`(얼굴 카드 도트 SVG). `data/faces.json`은 이미 있다
+- 참고: `art/sample/card-art-sample.html`의 `<script>`에 무늬 SVG 경로(SUITS), 무늬 배치표(PIPS), `renderCard`, `pixelRects`, `facePortrait`가 동작하는 형태로 들어 있다. 이 코드를 TypeScript로 옮기고 Card 타입(rank 2~14)에 맞춘다. 견본의 HTML과 CSS는 옮기지 않는다
+- faces.json 구조: `base`(공통 색) + `robe.red|black`(옷 색, 하트/다이아는 red) + `faces["11"|"12"|"13"]`(인물별 색과 위쪽 절반 격자 28 x 22). 아래 절반은 격자를 180도 돌려 그린다. `.`은 투명
+- 완료 기준: 52장 모두 오류 없이 SVG 문자열이 나온다. 무늬를 유니코드 기호 문자(U+2660~U+2667)로 쓰지 않는다
+- 건드리는 파일: src/ui/cardView.ts, src/ui/faceArt.ts, src/game/rules.ts는 건드리지 않는다 (ui/faceArt.ts만 faces.json을 직접 읽는다, design.md 2.3)
+- 테스트 방법: `tests/ui/cardView.test.ts`에서 52장 생성, 얼굴 카드에 rect가 들어가는지 확인. vitest 환경은 node라 DOM 없이 문자열만 검사한다
+
+### T-012 라운드 화면
+
+- 할 일: `main.ts`에서 `newRun(Date.now())`로 시작하고, 행동이 오면 `apply` 후 `render` 다시 호출. `ui/render.ts`가 phase별 화면을 고른다. 이번 작업은 round 화면만. `ui/dom.ts`, `ui/sidebar.ts`, `ui/screens/roundScreen.ts`
+- 사이드바: 블라인드 이름, 목표 점수(`currentTarget`), 현재 점수, 마지막 플레이의 칩 x 배수, 핸드/버리기 남은 횟수, 돈, 안테 n/8
+- 놀이판: 조커 줄(그림은 T-015 전까지 이름만 적힌 빈 카드), 손패 8장(고른 카드는 위로 18px), 버튼 [플레이] [숫자순] [무늬순] [버리기], 플레이 직후 `lastScore.steps`를 한 줄씩 보여 주는 계산 과정 패널
+- 버튼 비활성화: 고른 카드 0장이면 플레이와 버리기, 버리기 0번이면 버리기
+- 배치와 색은 design.md 5.1, 5.4, 문구는 5.6을 따른다. 색은 tokens.css 변수만 쓴다
+- 완료 기준: 브라우저에서 카드를 골라 플레이와 버리기를 반복할 수 있고, 목표를 넘기면 phase가 cash_out으로 바뀐다(이 화면은 T-013에서)
+- 테스트 방법: `npm run dev`로 직접 플레이. 규칙 테스트는 이미 tests/game에 있다
+
+### T-013 정산, 상점, 조커 카드
+
+- 할 일: `screens/cashOutScreen.ts`(cashOut.lines 표와 [받기] 버튼 -> collect), `screens/shopScreen.ts`(진열 2칸, [사기] [다시 굴리기 $n] [다음 라운드]), `ui/jokerView.ts`(그림, 이름, 효과 설명, 가격 또는 판매가)
+- 조커 줄은 round와 shop 화면 모두에 있고 [팔기 $n]과 왼쪽/오른쪽 이동 버튼이 있다 (sell, move_joker)
+- 완료 기준: 정산 -> 상점 -> 다음 라운드가 끊기지 않고 이어진다. 돈이 모자라거나 칸이 차면 사기 버튼이 비활성화된다
+
+### T-014 끝 화면과 기록
+
+- 할 일: `screens/endScreen.ts`(won, lost), `storage/records.ts`(최고 도달 안테, 최고 한 손 점수. localStorage 읽기/쓰기는 try/catch로 감싼다)
+- 문구: design.md 5.6. 패배 화면에는 도달 안테와 블라인드, 이번 판 최고 한 손, 역대 기록을 보여 준다
+- 완료 기준: 새로고침해도 역대 기록이 남는다. [새 게임]이 동작한다
+
+### T-017 마무리 점검
+
+- 할 일: 가로 375px 화면에서 가로 스크롤 없이 플레이 가능한지, 키보드(Tab, Enter)로 카드 고르기와 버튼이 되는지 확인. README의 "실행 방법"과 배포 주소 갱신
+- 완료 기준: 위 항목을 progress.md에 확인 결과로 남긴다
+
 ### T-015 조커 그림 변환
 
 - 할 일: scripts/process-joker-art.mjs. art/jokers/*.png를 읽어 바깥 배경(크림색)을 가장자리부터 지우고, 71 x 95 안에 비율을 지켜 넣고, 색을 정리해 public/jokers/에 저장
 - 완료 기준: 변환한 그림을 확대해 보았을 때 외곽선이 끊기지 않고 얼굴(배경과 비슷한 색)이 지워지지 않는다
 - 테스트 방법: 결과 PNG를 눈으로 확인
+- 주의할 그림
+  - 원본은 모두 1024 x 1536이고, 픽셀 크기가 일정하지 않은 "픽셀 아트 느낌" 그림이다. 단순 최근접 축소는 선이 끊길 수 있다
+  - half_joker: 얼굴이 잘린 면에 외곽선이 없어 배경 지우기가 얼굴로 번진다. 배경색과 얼굴색의 차이(얼굴이 약간 더 밝다)로 임계값을 잡거나, 이 그림만 오른쪽 잘린 선을 경계로 처리한다
+  - sly_joker: 커튼이 그림 오른쪽 끝에 닿아 있다. 커튼은 빨강이라 지워지지 않지만 결과를 확인한다
+  - wrathful_joker: 얼굴 분홍 음영이 그라데이션처럼 번져 있다. 색 정리(팔레트 축소)로 단색 면으로 만든다
+- sharp는 이미 devDependencies에 있다
 
 ### T-016 조커 그림 생성 (사람)
 

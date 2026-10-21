@@ -1,0 +1,512 @@
+<title>발라트로 그림 견본</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600&family=Do+Hyeon&family=Gowun+Dodum&display=swap">
+<style>
+  /* Layout: one felt table, sections stacked like zones on the table (hand, face cards, jokers, source, notes) */
+  :root {
+    color-scheme: dark;
+    --felt: #2c5a4d;
+    --felt-deep: #1f443a;
+    --panel: #1b2326;
+    --panel-line: #33413f;
+    --ink: #efe7d6;
+    --muted: #a7b6ae;
+    --card: #f3ebdb;
+    --card-edge: #c7b99d;
+    --suit-red: #c23b2e;
+    --suit-black: #24262c;
+    --chips: #2f7fd0;
+    --mult: #d6452f;
+    --money: #e1b03f;
+    --font-num: "Pixelify Sans", ui-monospace, monospace;
+    --font-head: "Do Hyeon", "Malgun Gothic", sans-serif;
+    --font-body: "Gowun Dodum", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  }
+  body {
+    background: radial-gradient(ellipse at 50% 30%, var(--felt) 0%, var(--felt-deep) 85%) fixed, var(--felt-deep);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .wrap {
+    max-width: 920px;
+    margin: 0 auto;
+    padding-block: 28px 48px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    display: grid;
+    gap: 36px;
+  }
+  h1, h2 { font-family: var(--font-head); font-weight: 400; margin: 0; text-wrap: balance; }
+  h1 { font-size: 30px; letter-spacing: 0.02em; }
+  h2 { font-size: 21px; }
+  p { margin: 0; max-width: 62ch; }
+  code { font-family: ui-monospace, Consolas, monospace; font-size: 0.92em; }
+  .lede { color: var(--muted); margin-top: 6px; }
+  .zone { display: grid; gap: 14px; }
+  .zone-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .zone-head small { color: var(--muted); font-size: 13px; }
+
+  /* Cards */
+  .hand, .faces { display: flex; gap: clamp(6px, 1.6vw, 14px); align-items: flex-end; flex-wrap: wrap; }
+  .hand { padding-top: 18px; flex-wrap: nowrap; }
+  .card {
+    width: clamp(56px, 16vw, 104px);
+    aspect-ratio: 100 / 140;
+    max-width: 100%;
+    flex: 0 0 auto;
+    filter: drop-shadow(0 3px 0 rgba(0,0,0,.35));
+    transition: transform .15s ease;
+  }
+  .faces .card { width: clamp(96px, 14vw, 128px); }
+  .card svg { width: 100%; height: 100%; display: block; }
+  .card.selected { transform: translateY(-18px); }
+
+  .score {
+    display: grid;
+    grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+    gap: 16px;
+    background: var(--panel);
+    border: 2px solid var(--panel-line);
+    border-radius: 6px;
+    padding: 16px;
+  }
+  .score-main { display: grid; gap: 10px; align-content: start; }
+  .hand-name { font-family: var(--font-head); font-size: 22px; }
+  .hand-name span { font-family: var(--font-num); font-size: 14px; color: var(--muted); margin-left: 6px; }
+  .cxm { display: flex; align-items: center; gap: 8px; font-family: var(--font-num); font-size: 26px; }
+  .box { min-width: 64px; padding: 2px 10px; border-radius: 4px; text-align: right; color: #fff; font-variant-numeric: tabular-nums; }
+  .box.chips { background: var(--chips); }
+  .box.mult { background: var(--mult); }
+  .total { font-family: var(--font-num); font-size: 15px; color: var(--muted); }
+  .total b { color: var(--ink); font-size: 22px; font-weight: 600; }
+  .steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font-size: 14px; }
+  .steps li { display: grid; grid-template-columns: 1fr auto; gap: 12px; padding: 4px 0; border-bottom: 1px dashed var(--panel-line); }
+  .steps li:last-child { border-bottom: 0; }
+  .steps .v { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+  .steps .c { color: #7fb4ea; }
+  .steps .m { color: #f08a74; }
+  .steps .none { color: var(--muted); }
+
+  /* Jokers */
+  .how { background: var(--panel); border: 2px solid var(--panel-line); border-radius: 6px; padding: 14px 16px; display: grid; gap: 8px; }
+  .how ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; font-size: 14px; }
+  .joker-list { display: grid; gap: 14px; }
+  .joker {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 16px;
+    background: var(--panel);
+    border: 2px solid var(--panel-line);
+    border-radius: 6px;
+    padding: 14px;
+  }
+  .joker-slot {
+    width: 96px;
+    aspect-ratio: 2 / 3;
+    border-radius: 5px;
+    border: 2px dashed var(--card-edge);
+    display: grid;
+    place-items: center;
+    text-align: center;
+    color: var(--muted);
+    font-family: var(--font-num);
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .joker-body { display: grid; gap: 8px; min-width: 0; align-content: start; }
+  .joker-title { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .joker-title b { font-family: var(--font-head); font-weight: 400; font-size: 19px; }
+  .joker-title .effect { font-size: 14px; color: var(--muted); }
+  .joker-title .effect .tm { color: #f08a74; font-weight: 700; }
+  .joker-title .price { font-family: var(--font-num); color: var(--money); margin-left: auto; }
+  .subject { font-size: 14px; background: rgba(239, 231, 214, .06); border-left: 3px solid var(--money); padding: 6px 10px; }
+  .copy {
+    justify-self: start;
+    font: inherit;
+    font-size: 13px;
+    color: var(--suit-black);
+    background: var(--card);
+    border: 0;
+    border-radius: 4px;
+    padding: 5px 12px;
+    cursor: pointer;
+  }
+  .copy:hover { background: #fff; }
+  .copy:focus-visible { outline: 2px solid var(--money); outline-offset: 2px; }
+
+  /* Source */
+  .source { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 20px; align-items: start; }
+  .source-art { background: var(--card); border: 2px solid var(--panel-line); border-radius: 6px; padding: 12px; }
+  .source-art svg { width: 112px; height: auto; display: block; }
+  pre {
+    margin: 0;
+    overflow-x: auto;
+    background: var(--panel);
+    border: 2px solid var(--panel-line);
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-family: ui-monospace, Consolas, "D2Coding", monospace;
+    font-size: 12.5px;
+    line-height: 1.35;
+    color: var(--ink);
+  }
+  .prompt { white-space: pre-wrap; }
+
+  /* Notes */
+  .notes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .note { background: var(--panel); border: 2px solid var(--panel-line); border-radius: 6px; padding: 14px 16px; display: grid; gap: 8px; align-content: start; }
+  .note h3 { margin: 0; font-family: var(--font-head); font-weight: 400; font-size: 17px; }
+  .note ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 14px; }
+  .note.todo h3 { color: var(--money); }
+
+  @media (max-width: 640px) {
+    .score, .source, .notes { grid-template-columns: minmax(0, 1fr); }
+    .joker { grid-template-columns: 64px minmax(0, 1fr); gap: 12px; }
+    .joker-slot { width: 64px; font-size: 10px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .card { transition: none; } }
+</style>
+
+<main class="wrap">
+  <header>
+    <h1>발라트로 그림 견본</h1>
+    <p class="lede">트럼프 카드는 SVG로 생성하고, J, Q, K 얼굴은 도트 격자로 그립니다. 조커 그림은 ChatGPT에 아래 프롬프트를 넣어 만듭니다.</p>
+  </header>
+
+  <section class="zone">
+    <div class="zone-head">
+      <h2>얼굴 카드</h2>
+      <small>인물 3명 x 2색. 위 절반만 그리고 아래는 180도 돌려 붙입니다</small>
+    </div>
+    <div class="faces" id="faces"></div>
+  </section>
+
+  <section class="zone">
+    <div class="zone-head">
+      <h2>손패와 점수 계산</h2>
+      <small>K 두 장을 골라 원 페어를 플레이한 장면</small>
+    </div>
+    <div class="hand" id="hand"></div>
+    <div class="score">
+      <div class="score-main">
+        <div class="hand-name">원 페어<span>lv.1</span></div>
+        <div class="cxm"><span class="box chips">30</span>X<span class="box mult">6</span></div>
+        <div class="total">점수 <b>180</b> / 목표 300</div>
+      </div>
+      <ol class="steps">
+        <li><span>원 페어 기본값</span><span class="v"><span class="c">10</span> x <span class="m">2</span></span></li>
+        <li><span>K 하트</span><span class="v c">+10 칩</span></li>
+        <li><span>K 클로버</span><span class="v c">+10 칩</span></li>
+        <li><span>조커</span><span class="v m">+4 배수</span></li>
+        <li><span>탐욕스러운 조커 (다이아몬드 없음)</span><span class="v none">변화 없음</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="zone">
+    <div class="zone-head">
+      <h2>조커 10종 그림 프롬프트</h2>
+      <small>프롬프트 복사를 누르면 공통 스타일과 소재가 합쳐진 전체 문장이 복사됩니다</small>
+    </div>
+    <div class="how">
+      <ol>
+        <li>첫 번째 "조커"를 먼저 만듭니다. 마음에 드는 결과가 나올 때까지 다시 생성하고, 고른 그림을 기준 이미지로 정합니다.</li>
+        <li>나머지 9장은 같은 대화창에서 기준 이미지를 첨부한 채로 하나씩 요청합니다. 그래야 화풍이 맞습니다.</li>
+        <li>받은 그림은 <code>public/jokers/조커id.png</code>로 저장합니다. 크기 줄이기와 색 맞추기는 스크립트로 처리할 예정입니다.</li>
+      </ol>
+    </div>
+    <div class="joker-list" id="jokers"></div>
+  </section>
+
+  <section class="zone">
+    <div class="zone-head">
+      <h2>얼굴 카드 그림의 원본</h2>
+      <small>K의 위 절반. data/ 폴더에 이 텍스트가 그대로 들어갑니다</small>
+    </div>
+    <div class="source">
+      <div class="source-art" id="source-art"></div>
+      <pre id="source-text"></pre>
+    </div>
+  </section>
+
+  <section class="notes">
+    <div class="note">
+      <h3>이번에 바뀐 것</h3>
+      <ul>
+        <li>얼굴 격자를 24 x 18에서 28 x 22로 키웠습니다.</li>
+        <li>인물마다 외곽선, 머리와 수염 음영, 옷 무늬, 금색 장식을 넣었습니다.</li>
+        <li>킹은 검, 퀸은 꽃, 잭은 창을 들고 있습니다.</li>
+        <li>두 눈이 같은 방향을 보도록 고쳤습니다.</li>
+      </ul>
+    </div>
+    <div class="note todo">
+      <h3>아직 정할 것</h3>
+      <ul>
+        <li>조커 가격과 효과 수치는 원작 위키와 대조해 확정해야 합니다 (T-002).</li>
+        <li>조커 그림 작업은 Codex, Copilot이 할 수 없습니다. tasks.md에서 사람이 맡는 작업으로 표시합니다.</li>
+        <li>글꼴: 이 견본은 페이지 제한 때문에 대체 글꼴을 썼습니다. 실제 프로젝트는 갈무리를 씁니다.</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<script>
+  const SUITS = {
+    spades: { red: false, label: "스페이드",
+      shape: '<path d="M50 6 C80 30 96 46 96 62 C96 76 85 84 73 84 C64 84 56 79 53 72 C54 82 58 90 66 96 L34 96 C42 90 46 82 47 72 C44 79 36 84 27 84 C15 84 4 76 4 62 C4 46 20 30 50 6 Z"/>' },
+    hearts: { red: true, label: "하트",
+      shape: '<path d="M50 90 C20 66 4 50 4 31 C4 16 15 6 28 6 C38 6 46 12 50 21 C54 12 62 6 72 6 C85 6 96 16 96 31 C96 50 80 66 50 90 Z"/>' },
+    diamonds: { red: true, label: "다이아몬드",
+      shape: '<path d="M50 4 L86 50 L50 96 L14 50 Z"/>' },
+    clubs: { red: false, label: "클로버",
+      shape: '<circle cx="50" cy="28" r="21"/><circle cx="27" cy="57" r="21"/><circle cx="73" cy="57" r="21"/><path d="M45 50 L55 50 C55 74 59 86 68 96 L32 96 C41 86 45 74 45 50 Z"/>' },
+  };
+
+  const L = 30, C = 50, R = 70;
+  const PIPS = {
+    2: [[C, 28], [C, 112]],
+    3: [[C, 28], [C, 70], [C, 112]],
+    4: [[L, 28], [R, 28], [L, 112], [R, 112]],
+    5: [[L, 28], [R, 28], [C, 70], [L, 112], [R, 112]],
+    6: [[L, 28], [R, 28], [L, 70], [R, 70], [L, 112], [R, 112]],
+    7: [[L, 28], [R, 28], [C, 49], [L, 70], [R, 70], [L, 112], [R, 112]],
+    8: [[L, 28], [R, 28], [C, 49], [L, 70], [R, 70], [C, 91], [L, 112], [R, 112]],
+    9: [[L, 28], [R, 28], [L, 56], [R, 56], [C, 70], [L, 84], [R, 84], [L, 112], [R, 112]],
+    10: [[L, 28], [R, 28], [C, 42], [L, 56], [R, 56], [L, 84], [R, 84], [C, 98], [L, 112], [R, 112]],
+  };
+
+  const ROBE_TONES = {
+    red: { M: "#c23b2e", m: "#86281f" },
+    black: { M: "#2f5c9e", m: "#1d3a68" },
+  };
+
+  const FACE_BASE_PALETTE = {
+    K: "#1d1b22", S: "#f0c9a0", s: "#cf9670", G: "#e1b03f", g: "#a87a22",
+    C: "#3b6ea8", W: "#f7f1e4", A: "#c9ccd2", t: "#f0d27a", n: "#4f8a4a",
+  };
+
+  const FACES = {
+    K: {
+      palette: { H: "#d6d1c6", h: "#a9a399" },
+      half: [
+        "..........G..GG..G..........",
+        "..........GgGGGGgG..........",
+        ".........KGCGGGGCGK.........",
+        ".........KGGGGGGGGK.........",
+        "........KHHHHHHHHHHK...K....",
+        "........HHSSSSSSSSHH...A....",
+        ".......KHSSSSSSSSSSHK..A....",
+        ".......KHSKKSSSSKKSHK..A....",
+        ".......KHSKWSSSSKWSHK..A....",
+        ".......KHSSSSssSSSSHK..A....",
+        ".......KHSSSSssSSSSHK..A....",
+        ".......KHHSSSSSSSSHHK..A....",
+        ".......KHHHHHKKHHHHHK..A....",
+        ".......KHHhHHHHHHhHHK..A....",
+        "........KHHhHHHHhHHK...A....",
+        "....KKKKMKHHHHHHHHKMKGGGGG..",
+        "...KMMMMMMKHHHHHHKMMMMMgK...",
+        "..KMmMMMMMWKHHHHKWMMMMMgMK..",
+        "..KMmMtMtMWGGGGGGWMtMtMgMK..",
+        "..KMmMMMMMWGgGGgGWMMMMMgMK..",
+        "..KMmMtMtMWGGGGGGWMtMtMgMK..",
+        "KKKKKKKKKKKKKKKKKKKKKKKKKKKK",
+      ],
+    },
+    Q: {
+      palette: { Y: "#c98a3a", P: "#e39a86", L: "#b8402f", F: "#f7f1e4" },
+      half: [
+        "...........G.GG.G...........",
+        "...........GGGGGG...........",
+        "..........YGCGGCGY..........",
+        "........YYYGGGGGGYYY........",
+        ".......YYYYYYYYYYYYYY.......",
+        "......YYYSSSSSSSSSSYYY......",
+        "......YYSSSSSSSSSSSSYY......",
+        "......YYSKKSSSSSSKKSYY......",
+        "......YYSKWSSSSSSKWSYY......",
+        "......YYSPSSSssSSSPSYY......",
+        "......YYSSSSSssSSSSSYY......",
+        "......YYSSSSSLLSSSSSYY......",
+        ".....YYYYSSSSSSSSSSYYYY.....",
+        "....YYYYYYKSSSSSSKYYYYYY....",
+        "....YYYFYKWWWWWWWWKYYYYY....",
+        "...YYYFGFMWGGWWGGWMMKYYYY...",
+        "...YYKMFmMMWGGGGWMMmMMKYY...",
+        "..YYKMmnMtMMWGGWMMtMMmMKYY..",
+        "..KKMmMnnMMMWGGWMMMMMMmMKK..",
+        "..KMmMMnMMtMWGGWMtMMtMMmMK..",
+        "..KMmMMnMMMMWGGWMMMMMMMmMK..",
+        "KKKKKKKKKKKKKKKKKKKKKKKKKKKK",
+      ],
+    },
+    J: {
+      palette: { H: "#7a4a2a", F: "#e1b03f" },
+      half: [
+        "...................F........",
+        "....A.............FF........",
+        "....A.....KMMMMMMFF.........",
+        "...AAA...KMMMMMMMFK.........",
+        "....g...KMMMMMMMMMMK........",
+        "....g..KGGGGGGGGGGGGK.......",
+        "....g..KHHHHHHHHHHHHK.......",
+        "....g..KHSSSSSSSSSSHK.......",
+        "....g..KHSKKSSSSKKSHK.......",
+        "....g..KHSKWSSSSKWSHK.......",
+        "....g..KHSSSSssSSSSHK.......",
+        "....g..KHSSSSssSSSSHK.......",
+        "....g...KSSSSSSSSSSK........",
+        "....g...KSSSKKKKSSSK........",
+        "....g....KSSSSSSSSK.........",
+        "....gKKKKKWWWWWWWWKKKKK.....",
+        "....gMMMMMWtWttWtWMMMMMK....",
+        "...KgmMMMMMWGGGGWMMMMMmMK...",
+        "...KgmMtMMMWGggGWMMMtMmMK...",
+        "..KMgmMMMMMWGGGGWMMMMMmMMK..",
+        "..KMgmMtMMMWGggGWMMMtMmMMK..",
+        "KKKKKKKKKKKKKKKKKKKKKKKKKKKK",
+      ],
+    },
+  };
+
+  const JOKER_STYLE =
+`트럼프 카드 게임에 들어갈 조커 카드 한 장의 그림을 그려줘.
+- 세로 2:3 비율, 카드 한 장을 그림이 꽉 채움
+- 16비트 시절 게임 같은 픽셀 아트. 가로 약 71픽셀짜리 그림을 확대한 것처럼 픽셀이 크게 보이게
+- 1픽셀 두께의 짙은 외곽선(#1d1b22), 단색 면 채색, 그라데이션과 안티에일리어싱 없음
+- 전체 색은 8색 이내
+- 배경은 크림색(#f3ebdb) 단색. 카드 테두리, 글자, 숫자, 서명은 넣지 말 것
+- 첨부한 기준 이미지가 있으면 그것과 같은 화풍, 같은 외곽선 굵기, 같은 색감으로`;
+
+  const JOKERS = [
+    { id: "joker", name: "조커", effect: '<span class="tm">배수 +4</span>', price: 2,
+      subject: "빨강과 파랑으로 반씩 나뉜 두 갈래 광대 모자를 쓰고, 이를 드러내며 활짝 웃는 광대의 얼굴. 모자 끝마다 금색 방울." },
+    { id: "greedy_joker", name: "탐욕스러운 조커", effect: '다이아몬드 1장마다 <span class="tm">배수 +3</span>', price: 5,
+      subject: "빨간 다이아몬드 모양 보석 더미를 두 팔로 꽉 끌어안고, 눈을 가늘게 뜬 채 군침을 흘리는 광대." },
+    { id: "lusty_joker", name: "음탕한 조커", effect: '하트 1장마다 <span class="tm">배수 +3</span>', price: 5,
+      subject: "한쪽 눈을 찡긋하며 손키스를 날리는 광대. 주변에 빨간 하트 모양 서너 개가 떠 있음." },
+    { id: "wrathful_joker", name: "분노한 조커", effect: '스페이드 1장마다 <span class="tm">배수 +3</span>', price: 5,
+      subject: "얼굴이 시뻘개지고 머리 위로 김이 솟는 화난 광대. 한 손에 검은 스페이드 모양 방패를 들고 있음." },
+    { id: "gluttonous_joker", name: "폭식하는 조커", effect: '클로버 1장마다 <span class="tm">배수 +3</span>', price: 5,
+      subject: "클로버 모양 초록 쿠키를 입에 잔뜩 넣어 양 볼이 터질 듯 부푼 광대. 손에 쿠키 하나를 더 들고 있음." },
+    { id: "jolly_joker", name: "쾌활한 조커", effect: '원 페어 포함 시 <span class="tm">배수 +8</span>', price: 3,
+      subject: "똑같이 생긴 광대 두 명이 어깨동무를 하고 입을 크게 벌려 웃는 모습." },
+    { id: "zany_joker", name: "엉뚱한 조커", effect: '트리플 포함 시 <span class="tm">배수 +12</span>', price: 4,
+      subject: "몸 하나 위에 광대 얼굴 세 개가 토템처럼 쌓여 있고, 세 얼굴이 각자 다른 방향을 보며 엉뚱한 표정을 짓는 모습." },
+    { id: "sly_joker", name: "교활한 조커", effect: '원 페어 포함 시 <span class="tm">칩 +50</span>', price: 3,
+      subject: "커튼 뒤에서 몸을 반쯤 내밀고 음흉하게 웃는 광대. 등 뒤로 숫자가 같은 카드 두 장을 몰래 쥐고 있음." },
+    { id: "half_joker", name: "하프 조커", effect: '3장 이하로 낼 때 <span class="tm">배수 +20</span>', price: 5,
+      subject: "세로로 정확히 반만 그려진 광대. 왼쪽 절반만 있고 오른쪽 절반은 깔끔하게 잘려 배경만 보임." },
+    { id: "abstract_joker", name: "추상적 조커", effect: '조커 1장마다 <span class="tm">배수 +3</span>', price: 4,
+      subject: "원, 삼각형, 사각형 도형 조각만으로 짜 맞춘 광대 얼굴. 입체파 그림처럼 조각마다 색이 다름." },
+  ];
+
+  function suitColor(suit) {
+    return SUITS[suit].red ? "var(--suit-red)" : "var(--suit-black)";
+  }
+
+  function suitIcon(suit, x, y, size, flip) {
+    const turn = flip ? ' transform="rotate(180 50 50)"' : "";
+    return `<svg x="${x - size / 2}" y="${y - size / 2}" width="${size}" height="${size}" viewBox="0 0 100 100"><g${turn} fill="${suitColor(suit)}">${SUITS[suit].shape}</g></svg>`;
+  }
+
+  function pixelRects(rows, palette, rotateFrom) {
+    const w = rows[0].length;
+    let rects = "";
+    rows.forEach((row, y) => {
+      [...row].forEach((ch, x) => {
+        if (ch === ".") return;
+        const px = rotateFrom === undefined ? x : w - 1 - x;
+        const py = rotateFrom === undefined ? y : rotateFrom - y;
+        rects += `<rect x="${px}" y="${py}" width="1" height="1" fill="${palette[ch]}"/>`;
+      });
+    });
+    return rects;
+  }
+
+  function facePortrait(rank, suit, attrs = "") {
+    const face = FACES[rank];
+    const palette = { ...FACE_BASE_PALETTE, ...face.palette, ...ROBE_TONES[SUITS[suit].red ? "red" : "black"] };
+    const h = face.half.length;
+    const w = face.half[0].length;
+    return `<svg ${attrs} viewBox="0 0 ${w} ${h * 2}" shape-rendering="crispEdges">`
+      + pixelRects(face.half, palette) + pixelRects(face.half, palette, h * 2 - 1) + `</svg>`;
+  }
+
+  function cardCenter(rank, suit) {
+    if (rank === "A") return suitIcon(suit, 50, 70, 44, false);
+    if (FACES[rank]) {
+      return `<rect x="21" y="25" width="58" height="90" fill="none" stroke="${suitColor(suit)}" stroke-width="2"/>`
+        + facePortrait(rank, suit, 'x="22" y="26" width="56" height="88"');
+    }
+    return PIPS[rank].map(([x, y]) => suitIcon(suit, x, y, 17, y > 70)).join("");
+  }
+
+  function cardCorner(rank, suit) {
+    return `<text x="10" y="19" text-anchor="middle" font-family="Pixelify Sans, monospace" font-weight="600" font-size="${rank === "10" ? 13 : 16}" fill="${suitColor(suit)}">${rank}</text>`
+      + suitIcon(suit, 10, 28, 10, false);
+  }
+
+  function renderCard(rank, suit) {
+    const corner = cardCorner(rank, suit);
+    return `<svg viewBox="0 0 100 140" role="img" aria-label="${SUITS[suit].label} ${rank}">`
+      + `<rect x="1" y="1" width="98" height="138" rx="7" fill="var(--card)" stroke="var(--card-edge)" stroke-width="2"/>`
+      + corner + `<g transform="rotate(180 50 70)">${corner}</g>`
+      + cardCenter(rank, suit) + `</svg>`;
+  }
+
+  function fullPrompt(joker) {
+    return `${JOKER_STYLE}\n\n소재: ${joker.subject}`;
+  }
+
+  async function copyPrompt(button, text) {
+    try {
+      await navigator.clipboard.writeText(text);
+      button.textContent = "복사됨";
+    } catch {
+      const pre = button.parentElement.querySelector("pre");
+      pre.hidden = false;
+      const range = document.createRange();
+      range.selectNodeContents(pre);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      button.textContent = "선택됨. Ctrl+C로 복사하세요";
+    }
+  }
+
+  const HAND = [["A", "spades"], ["K", "hearts"], ["K", "clubs"], ["10", "diamonds"], ["7", "hearts"]];
+  const SELECTED = new Set([1, 2]);
+  const FACE_ROW = [["J", "hearts"], ["Q", "hearts"], ["K", "diamonds"], ["J", "spades"], ["Q", "clubs"], ["K", "spades"]];
+
+  const cardBox = (rank, suit, extra = "") => `<div class="card${extra}">${renderCard(rank, suit)}</div>`;
+  document.getElementById("faces").innerHTML = FACE_ROW.map(([r, s]) => cardBox(r, s)).join("");
+  document.getElementById("hand").innerHTML = HAND.map(([r, s], i) => cardBox(r, s, SELECTED.has(i) ? " selected" : "")).join("");
+
+  const jokerList = document.getElementById("jokers");
+  JOKERS.forEach((joker, i) => {
+    const row = document.createElement("article");
+    row.className = "joker";
+    row.innerHTML = `
+      <div class="joker-slot">${i === 0 ? "기준<br>이미지" : "그림<br>자리"}</div>
+      <div class="joker-body">
+        <div class="joker-title"><b>${joker.name}</b><span class="effect">${joker.effect}</span><span class="price">$${joker.price}</span></div>
+        <div class="subject">${joker.subject}</div>
+        <button class="copy" type="button" id="copy-${joker.id}">프롬프트 복사</button>
+        <pre class="prompt" hidden></pre>
+      </div>`;
+    const text = fullPrompt(joker);
+    row.querySelector("pre").textContent = text;
+    row.querySelector("button").addEventListener("click", (e) => copyPrompt(e.currentTarget, text));
+    jokerList.appendChild(row);
+  });
+
+  document.getElementById("source-art").innerHTML = facePortrait("K", "hearts");
+  document.getElementById("source-text").textContent =
+    '"K": {\n  "palette": ' + JSON.stringify(FACES.K.palette) + ',\n  "half": [\n'
+    + FACES.K.half.map((row) => `    "${row}"`).join(",\n") + "\n  ]\n}";
+</script>

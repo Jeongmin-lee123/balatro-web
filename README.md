@@ -8,7 +8,14 @@
 
 ## 실행 방법
 
-(프로젝트 골격 작업 T-003 이후 기입)
+```
+npm install
+npm run dev        개발 서버
+npm test           규칙 테스트
+npm run build      배포용 빌드 (dist/)
+```
+
+지금은 게임 규칙만 완성되어 있고 화면은 만드는 중이다. 진행 상황은 `docs/progress.md`.
 
 ## 폴더 구조
 
@@ -26,7 +33,7 @@
 │  └─ styles/           CSS와 디자인 토큰
 ├─ data/                족보 수치, 블라인드, 조커 목록 같은 고정 자료 (JSON)
 ├─ public/jokers/       화면에 쓰는 조커 그림 (art/에서 변환)
-├─ art/jokers/          ChatGPT로 만든 조커 원본 그림
+├─ art/                 ChatGPT로 만든 조커 원본(jokers/)과 그림 견본(sample/)
 ├─ scripts/             그림 변환 스크립트
 ├─ tests/               game/ 규칙 테스트
 └─ docs/
@@ -35,8 +42,6 @@
    ├─ tasks.md          어떤 순서로 구현할까
    └─ progress.md       지금 어디까지 했나
 ```
-
-`src/`, `data/`, `tests/`는 아직 없다. T-003에서 만든다.
 
 ## 처음 온 사람이 읽는 순서
 

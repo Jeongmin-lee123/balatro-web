@@ -1,0 +1,121 @@
+{
+  "base": {
+    "K": "#1d1b22",
+    "S": "#f0c9a0",
+    "s": "#cf9670",
+    "G": "#e1b03f",
+    "g": "#a87a22",
+    "C": "#3b6ea8",
+    "W": "#f7f1e4",
+    "A": "#c9ccd2",
+    "t": "#f0d27a",
+    "n": "#4f8a4a"
+  },
+  "robe": {
+    "red": {
+      "M": "#c23b2e",
+      "m": "#86281f"
+    },
+    "black": {
+      "M": "#2f5c9e",
+      "m": "#1d3a68"
+    }
+  },
+  "faces": {
+    "11": {
+      "name": "잭",
+      "palette": {
+        "H": "#7a4a2a",
+        "F": "#e1b03f"
+      },
+      "half": [
+        "...................F........",
+        "....A.............FF........",
+        "....A.....KMMMMMMFF.........",
+        "...AAA...KMMMMMMMFK.........",
+        "....g...KMMMMMMMMMMK........",
+        "....g..KGGGGGGGGGGGGK.......",
+        "....g..KHHHHHHHHHHHHK.......",
+        "....g..KHSSSSSSSSSSHK.......",
+        "....g..KHSKKSSSSKKSHK.......",
+        "....g..KHSKWSSSSKWSHK.......",
+        "....g..KHSSSSssSSSSHK.......",
+        "....g..KHSSSSssSSSSHK.......",
+        "....g...KSSSSSSSSSSK........",
+        "....g...KSSSKKKKSSSK........",
+        "....g....KSSSSSSSSK.........",
+        "....gKKKKKWWWWWWWWKKKKK.....",
+        "....gMMMMMWtWttWtWMMMMMK....",
+        "...KgmMMMMMWGGGGWMMMMMmMK...",
+        "...KgmMtMMMWGggGWMMMtMmMK...",
+        "..KMgmMMMMMWGGGGWMMMMMmMMK..",
+        "..KMgmMtMMMWGggGWMMMtMmMMK..",
+        "KKKKKKKKKKKKKKKKKKKKKKKKKKKK"
+      ]
+    },
+    "12": {
+      "name": "퀸",
+      "palette": {
+        "Y": "#c98a3a",
+        "P": "#e39a86",
+        "L": "#b8402f",
+        "F": "#f7f1e4"
+      },
+      "half": [
+        "...........G.GG.G...........",
+        "...........GGGGGG...........",
+        "..........YGCGGCGY..........",
+        "........YYYGGGGGGYYY........",
+        ".......YYYYYYYYYYYYYY.......",
+        "......YYYSSSSSSSSSSYYY......",
+        "......YYSSSSSSSSSSSSYY......",
+        "......YYSKKSSSSSSKKSYY......",
+        "......YYSKWSSSSSSKWSYY......",
+        "......YYSPSSSssSSSPSYY......",
+        "......YYSSSSSssSSSSSYY......",
+        "......YYSSSSSLLSSSSSYY......",
+        ".....YYYYSSSSSSSSSSYYYY.....",
+        "....YYYYYYKSSSSSSKYYYYYY....",
+        "....YYYFYKWWWWWWWWKYYYYY....",
+        "...YYYFGFMWGGWWGGWMMKYYYY...",
+        "...YYKMFmMMWGGGGWMMmMMKYY...",
+        "..YYKMmnMtMMWGGWMMtMMmMKYY..",
+        "..KKMmMnnMMMWGGWMMMMMMmMKK..",
+        "..KMmMMnMMtMWGGWMtMMtMMmMK..",
+        "..KMmMMnMMMMWGGWMMMMMMMmMK..",
+        "KKKKKKKKKKKKKKKKKKKKKKKKKKKK"
+      ]
+    },
+    "13": {
+      "name": "킹",
+      "palette": {
+        "H": "#d6d1c6",
+        "h": "#a9a399"
+      },
+      "half": [
+        "..........G..GG..G..........",
+        "..........GgGGGGgG..........",
+        ".........KGCGGGGCGK.........",
+        ".........KGGGGGGGGK.........",
+        "........KHHHHHHHHHHK...K....",
+        "........HHSSSSSSSSHH...A....",
+        ".......KHSSSSSSSSSSHK..A....",
+        ".......KHSKKSSSSKKSHK..A....",
+        ".......KHSKWSSSSKWSHK..A....",
+        ".......KHSSSSssSSSSHK..A....",
+        ".......KHSSSSssSSSSHK..A....",
+        ".......KHHSSSSSSSSHHK..A....",
+        ".......KHHHHHKKHHHHHK..A....",
+        ".......KHHhHHHHHHhHHK..A....",
+        "........KHHhHHHHhHHK...A....",
+        "....KKKKMKHHHHHHHHKMKGGGGG..",
+        "...KMMMMMMKHHHHHHKMMMMMgK...",
+        "..KMmMMMMMWKHHHHKWMMMMMgMK..",
+        "..KMmMtMtMWGGGGGGWMtMtMgMK..",
+        "..KMmMMMMMWGgGGgGWMMMMMgMK..",
+        "..KMmMtMtMWGGGGGGWMtMtMgMK..",
+        "KKKKKKKKKKKKKKKKKKKKKKKKKKKK"
+      ]
+    }
+  }
+}
