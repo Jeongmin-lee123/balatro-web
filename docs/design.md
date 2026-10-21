@@ -49,6 +49,7 @@ src/
 │  ├─ editions.ts        에디션 확률, 조커 칸 수(jokerSlots), 에디션 점수 단계
 │  ├─ inventory.ts       조커 받기, 행성 쓰기 공용 함수 (상점, 타로, 팩이 같이 쓴다)
 │  ├─ packs.ts           부스터 팩 진열, 열기, 고르기
+│  ├─ vouchers.ts        바우처를 반영한 규칙 값(modifiers), 할인, 바우처 고르기
 │  ├─ economy.ts         라운드 정산 (보상, 남은 핸드, 이자)
 │  ├─ shop.ts            진열, 구매, 리롤, 판매
 │  ├─ tags.ts            블라인드 태그 고르기, 즉시 지급 금액, 보관 태그 꺼내기
@@ -90,6 +91,7 @@ data/
 ├─ tarots.json           타로 21종 (id, 이름, 로마 숫자, 가격, 설명, 효과)
 ├─ editions.json         에디션 4종 (id, 이름, 설명, 상점 확률, 추가 가격, 효과)
 ├─ packs.json            부스터 팩 4종 (id, 이름, 가격, 보여 주는 장수, 비율, 내용)
+├─ vouchers.json         바우처 11종 (id, 이름, 설명, 가격, 효과)
 └─ faces.json            J, Q, K 도트 격자와 팔레트
 public/
 └─ jokers/<id>.png       처리된 조커 그림 (256 x 384, 16색, 배경 그대로)
@@ -100,7 +102,7 @@ scripts/
 └─ process-joker-art.mjs art/ -> public/ 변환
 tests/
 ├─ game/*.test.ts        src/game/ 파일마다 하나, cards.ts는 테스트 공용 도구
-└─ ui/*.test.ts          DOM 없이 검사할 수 있는 화면 함수 (SVG 문자열 등)
+└─ ui/*.test.ts          DOM 없이 검사할 수 있는 화면 함수. screens.test.ts는 phase별 화면을 문자열로 검사한다 (브라우저가 없을 때의 확인 수단)
 ```
 
 ### 2.3 의존 방향
@@ -201,6 +203,7 @@ type Action =
 | records.ts | `loadRecords(): Records`, `saveRun(state): Records` |
 | editions.ts | `editionDef(id)`, `editionFromRoll(value)`, `rollJokerEdition(rngState)`, `jokerSlots(jokers)`, `editionBefore(id, source)`, `editionAfter(id, source)` |
 | inventory.ts | `hasJokerRoom(state, edition?)`, `addJoker(state, defId, paid, edition?)`, `usePlanet(levels, planetId)` |
+| vouchers.ts | `modifiers(vouchers)`, `discounted(price, discount)`, `consumableSlots(state)`, `pickVoucher(rngState, owned)`, `voucherDef(id)` |
 | packs.ts | `packDef(id)`, `packPrice(offer)`, `rollPacks(rngState, count)`, `openPack(state, packId)`, `canPick(state, index)`, `pickFromPack(state, index)` |
 | tarots.ts | `tarotDef(id)`, `targetRange(effect)`, `canUseTarot(state, index)`, `useTarot(state, index)`, `addRandomTarots(state, count)` |
 | tags.ts | `tagDef(id)`, `pickBlindTags(rngState, ante)`, `instantMoney(effect, state)`, `takeTags(held, kind)` |
@@ -352,3 +355,4 @@ type Action =
 | D-015 | 2026-10-21 | 타로 카드 그림은 로마 숫자와 이름을 쓴 글자 카드로 시작한다 | 조커처럼 ChatGPT 그림을 넣을 수 있지만 사람 작업이 필요하다. 글자 카드만으로도 구분이 된다 |
 | D-016 | 2026-10-21 | 점수는 단계 순서대로 누적한다 (더하기 다음 곱하기가 순서에 따라 결과가 달라진다) | 유리(x2), 강철(x1.5) 같은 곱하기 효과가 원작처럼 순서에 따라 다르게 계산되어야 한다. 덧셈만 있을 때는 예전 방식과 결과가 같다 |
 | D-017 | 2026-10-21 | 부스터 팩은 phase pack_open에서 1장을 고른다. 아르카나 팩은 손패를 나눠 주지 않고 고른 타로를 소모품 칸에 넣는다 | 원작처럼 팩 안에서 손패에 타로를 쓰려면 라운드 밖에서 손패를 다뤄야 해 구조가 커진다. 소모품 칸에 넣으면 다음 라운드에 쓸 수 있다 |
+| D-018 | 2026-10-21 | 손패 수, 핸드, 버리기, 상점 칸, 소모품 칸, 이자 상한, 상점 비율은 RULES를 직접 읽지 않고 vouchers.ts의 modifiers를 거친다 | 바우처가 이 값들을 바꾼다. 한 곳에서만 계산해야 바우처를 추가할 때 빠뜨리는 곳이 없다 |

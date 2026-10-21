@@ -1000,3 +1000,20 @@
     gap: var(--gap-2);
   }
 }
+
+/* 바우처는 팩 칸 옆에 같은 틀로 */
+.pack--voucher .pack__face {
+  background: var(--pack-voucher);
+  border-color: var(--money);
+  align-content: center;
+  gap: var(--gap-1);
+}
+
+.pack__kind {
+  font-size: 11px;
+  color: var(--money);
+}
+
+.shop__packs {
+  grid-template-columns: repeat(3, minmax(0, 150px));
+}

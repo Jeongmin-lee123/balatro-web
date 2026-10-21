@@ -1,10 +1,11 @@
 import { blindName, nextBlind, targetScore } from "../../game/blinds";
-import { JOKERS, PLANETS, RULES, TAROTS } from "../../game/rules";
 import { bossDef } from "../../game/bosses";
 import { jokerSlots } from "../../game/editions";
-import { canBuy } from "../../game/run";
-import { offerPrice } from "../../game/shop";
+import { JOKERS, PLANETS, TAROTS } from "../../game/rules";
+import { canBuy, canBuyVoucher } from "../../game/run";
+import { itemCost } from "../../game/shop";
 import type { RunState, ShopOffer } from "../../game/types";
+import { consumableSlots, voucherDef } from "../../game/vouchers";
 import { button, esc } from "../dom";
 import { jokerCard } from "../jokerView";
 import { planetCard } from "../planetView";
@@ -13,8 +14,8 @@ import { tarotCard } from "../tarotView";
 
 function blockedReason(state: RunState, offer: ShopOffer): string {
   if (offer.kind === "joker" && offer.edition !== "negative" && state.jokers.length >= jokerSlots(state.jokers)) return "조커 칸이 가득 찼습니다";
-  if (offer.kind === "tarot" && state.consumables.length >= RULES.consumableSlots) return "소모품 칸이 가득 찼습니다";
-  if (state.money < offerPrice(offer)) return "돈이 모자랍니다";
+  if (offer.kind === "tarot" && state.consumables.length >= consumableSlots(state)) return "소모품 칸이 가득 찼습니다";
+  if (state.money < itemCost(state, offer)) return "돈이 모자랍니다";
   return "";
 }
 
@@ -24,7 +25,7 @@ function offerCard(state: RunState, offer: ShopOffer | null, slot: number): stri
   const footer =
     button({
       action: { type: "buy", slot },
-      label: `사기 $${offerPrice(offer)}`,
+      label: `사기 $${itemCost(state, offer)}`,
       className: "btn btn--small btn--money",
       disabled: reason !== "",
       key: `buy-${slot}`,
@@ -42,6 +43,18 @@ function offerCard(state: RunState, offer: ShopOffer | null, slot: number): stri
   return joker ? jokerCard(joker, footer, offer.edition) : "";
 }
 
+/** 이번 앤티의 바우처. 사면 판 내내 규칙이 바뀐다. 다음 앤티에 새로 나온다 */
+function voucherCard(state: RunState): string {
+  if (!state.voucherOffer) return `<div class="pack pack--sold"><span>바우처 없음</span></div>`;
+  const voucher = voucherDef(state.voucherOffer);
+  return `
+    <article class="pack pack--voucher">
+      <div class="pack__face"><span class="pack__name">${esc(voucher.name)}</span><span class="pack__kind">바우처</span></div>
+      <p class="joker__desc">${esc(voucher.description)}</p>
+      ${button({ action: { type: "buy_voucher" }, label: `사기 $${voucher.price}`, className: "btn btn--small btn--money", disabled: !canBuyVoucher(state), key: "voucher" })}
+    </article>`;
+}
+
 export function renderShopScreen(state: RunState): string {
   const shop = state.shop;
   if (!shop) return "";
@@ -54,7 +67,10 @@ export function renderShopScreen(state: RunState): string {
     <section class="panel shop" aria-labelledby="shop-title">
       <h2 id="shop-title" class="panel__title">상점</h2>
       <div class="shop__offers">${shop.offers.map((offer, slot) => offerCard(state, offer, slot)).join("")}</div>
-      <div class="shop__packs" aria-label="부스터 팩">${shop.packs.map((offer, slot) => packOfferCard(state, offer, slot)).join("")}</div>
+      <div class="shop__packs" aria-label="부스터 팩과 바우처">
+        ${shop.packs.map((offer, slot) => packOfferCard(state, offer, slot)).join("")}
+        ${voucherCard(state)}
+      </div>
       <div class="shop__actions">
         ${button({
           action: { type: "reroll" },

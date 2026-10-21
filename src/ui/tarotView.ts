@@ -1,8 +1,8 @@
 // 타로 카드와 소모품 칸. 타로 그림은 아직 없어 로마 숫자와 이름을 크게 쓰는 글자 카드로 그린다.
-import { RULES } from "../game/rules";
 import { sellValue } from "../game/shop";
 import { canUseTarot, tarotDef, targetRange } from "../game/tarots";
 import type { RunState, TarotDef } from "../game/types";
+import { consumableSlots } from "../game/vouchers";
 import { button, esc } from "./dom";
 
 export function tarotCard(tarot: TarotDef, footer: string): string {
@@ -43,10 +43,11 @@ export function renderConsumableRow(state: RunState): string {
       return tarotCard(tarot, footer);
     })
     .join("");
-  const empty = Array.from({ length: RULES.consumableSlots - state.consumables.length }, () => `<div class="joker-slot" aria-hidden="true"></div>`).join("");
+  const slots = consumableSlots(state);
+  const empty = Array.from({ length: slots - state.consumables.length }, () => `<div class="joker-slot" aria-hidden="true"></div>`).join("");
   return `
     <section class="joker-row consumable-row" aria-label="소모품">
-      <div class="joker-row__head"><span>소모품</span><span>${state.consumables.length}/${RULES.consumableSlots}</span></div>
+      <div class="joker-row__head"><span>소모품</span><span>${state.consumables.length}/${slots}</span></div>
       <div class="joker-row__cards consumable-row__cards">${cards}${empty}</div>
     </section>`;
 }

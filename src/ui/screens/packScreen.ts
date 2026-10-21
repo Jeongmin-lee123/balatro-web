@@ -1,5 +1,6 @@
-import { packDef, packPrice, canPick } from "../../game/packs";
-import { JOKERS, PLANETS, RULES, TAROTS } from "../../game/rules";
+import { canPick, packCost, packDef } from "../../game/packs";
+import { JOKERS, PLANETS, TAROTS } from "../../game/rules";
+import { consumableSlots } from "../../game/vouchers";
 import type { PackChoice, PackOffer, RunState } from "../../game/types";
 import { cardName, cardSvg } from "../cardView";
 import { button, esc } from "../dom";
@@ -11,7 +12,7 @@ import { tarotCard } from "../tarotView";
 export function packOfferCard(state: RunState, offer: PackOffer | null, slot: number): string {
   if (!offer) return `<div class="pack pack--sold"><span>판매됨</span></div>`;
   const def = packDef(offer.id);
-  const price = packPrice(offer);
+  const price = packCost(state, offer);
   return `
     <article class="pack pack--${esc(def.content)}">
       <div class="pack__face"><span class="pack__name">${esc(def.name)}</span></div>
@@ -21,7 +22,7 @@ export function packOfferCard(state: RunState, offer: PackOffer | null, slot: nu
 }
 
 function blockedReason(state: RunState, choice: PackChoice): string {
-  if (choice.kind === "tarot" && state.consumables.length >= RULES.consumableSlots) return "소모품 칸이 가득 찼습니다";
+  if (choice.kind === "tarot" && state.consumables.length >= consumableSlots(state)) return "소모품 칸이 가득 찼습니다";
   if (choice.kind === "joker") return "조커 칸이 가득 찼습니다";
   return "";
 }

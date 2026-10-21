@@ -3,6 +3,7 @@ import { ANTE_COUNT } from "../game/rules";
 import { activeBoss, currentTarget } from "../game/run";
 import { handName } from "../game/scoring";
 import { tagDef } from "../game/tags";
+import { voucherDef } from "../game/vouchers";
 import type { RunState } from "../game/types";
 import { button, esc } from "./dom";
 
@@ -66,8 +67,16 @@ export function renderSidebar(state: RunState): string {
       <div class="counter counter--money"><dt>돈</dt><dd>$${state.money}</dd></div>
       <div class="counter counter--ante"><dt>앤티</dt><dd>${state.ante}<small>/${ANTE_COUNT}</small></dd></div>
     </dl>
+    ${ownedVouchers(state)}
     ${heldTags(state)}
     ${state.phase === "won" || state.phase === "lost" ? "" : restartMenu()}`;
+}
+
+/** 산 바우처. 판 내내 규칙을 바꾸므로 항상 보여 준다 */
+function ownedVouchers(state: RunState): string {
+  if (state.vouchers.length === 0) return "";
+  const items = state.vouchers.map((id) => voucherDef(id)).map((v) => `<li title="${esc(v.description)}">${esc(v.name)}</li>`).join("");
+  return `<div class="held-tags"><span>바우처</span><ul>${items}</ul></div>`;
 }
 
 /** 받아 두고 아직 발동하지 않은 태그 */
