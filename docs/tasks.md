@@ -15,7 +15,7 @@
 | T-001 | 따라 만들 게임 확정, requirements.md 2~3장 작성 | AI | 완료 | - |
 | T-002 | 원작 수치 대조, design.md 3~5장 작성, 작업 쪼개기 | AI | 완료 | T-001 |
 | T-003 | 프로젝트 골격: Vite + TypeScript + Vitest + 갈무리, 빈 테이블 화면 | AI | 완료 | T-002 |
-| T-004 | GitHub 저장소 만들기, Vercel 연결, README에 배포 주소 기입 | 사람 + AI | 대기 | T-003 |
+| T-004 | GitHub 저장소 만들기, Vercel 연결, README에 배포 주소 기입 | 사람 + AI | 진행 중 | T-003 |
 
 ### 게임 규칙 (src/game, 화면 없음, 테스트 필수)
 
