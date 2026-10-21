@@ -46,6 +46,7 @@ src/
 │  ├─ jokers.ts          조커 효과 종류별 함수
 │  ├─ blinds.ts          목표 점수, 블라인드 보상
 │  ├─ bosses.ts          보스 고르기, 무효 카드, 라운드 횟수 제한
+│  ├─ editions.ts        에디션 확률, 조커 칸 수(jokerSlots), 에디션 점수 단계
 │  ├─ economy.ts         라운드 정산 (보상, 남은 핸드, 이자)
 │  ├─ shop.ts            진열, 구매, 리롤, 판매
 │  ├─ tags.ts            블라인드 태그 고르기, 즉시 지급 금액, 보관 태그 꺼내기
@@ -83,7 +84,8 @@ data/
 ├─ planets.json          행성 9종 (id, 이름, 올리는 족보, 가격, 그림 색)
 ├─ bosses.json           보스 12종 (id, 이름, 설명, 최소 앤티, 목표 배수, 효과)
 ├─ tags.json             태그 8종 (id, 이름, 설명, 최소 앤티, 효과)
-├─ tarots.json           타로 20종 (id, 이름, 로마 숫자, 가격, 설명, 효과)
+├─ tarots.json           타로 21종 (id, 이름, 로마 숫자, 가격, 설명, 효과)
+├─ editions.json         에디션 4종 (id, 이름, 설명, 상점 확률, 추가 가격, 효과)
 └─ faces.json            J, Q, K 도트 격자와 팔레트
 public/
 └─ jokers/<id>.png       처리된 조커 그림 (256 x 384, 16색, 배경 그대로)
@@ -138,7 +140,7 @@ type JokerEffect =
   | { kind: "per_joker_mult"; mult: number };
 
 interface JokerDef { id: string; name: string; price: number; description: string; effect: JokerEffect }
-interface OwnedJoker { uid: string; defId: string; paid: number }  // 같은 조커를 두 장 가질 수 있어 uid를 따로 둔다
+interface OwnedJoker { uid: string; defId: string; paid: number; edition?: EditionId }  // 같은 조커를 두 장 가질 수 있어 uid를 따로 둔다
 
 interface ScoreStep { source: string; chips: number; mult: number; xMult?: number; note: string }  // 화면의 계산 과정 한 줄, xMult는 곱하기
 interface ScoreResult { hand: HandResult; chips: number; mult: number; total: number; steps: ScoreStep[]; money: number; shattered: string[] }
@@ -193,6 +195,7 @@ type Action =
 | shop.ts | `rollOffers(rngState, count): [ShopOffer[], nextState]`, `offerPrice(offer)`, `sellValue(paid): number` |
 | run.ts | `newRun(seed): RunState`, `apply(state, action): RunState`, `currentTarget(state)`, `jokerDefs(owned)`, `canBuy(state, slot)`, `canPlay(state)`, `activeBoss(state)` |
 | records.ts | `loadRecords(): Records`, `saveRun(state): Records` |
+| editions.ts | `editionDef(id)`, `rollJokerEdition(rngState)`, `jokerSlots(jokers)`, `editionBefore(id, source)`, `editionAfter(id, source)` |
 | tarots.ts | `tarotDef(id)`, `targetRange(effect)`, `canUseTarot(state, index)`, `useTarot(state, index)` |
 | tags.ts | `tagDef(id)`, `pickBlindTags(rngState, ante)`, `instantMoney(effect, state)`, `takeTags(held, kind)` |
 | savedRun.ts | `loadSavedRun(): RunState | null`, `storeRun(state)`, `clearSavedRun()`, `SAVE_VERSION` |
@@ -204,7 +207,7 @@ type Action =
 1. 족보 기본 칩, 기본 배수 (레벨이 오른 만큼 data/hands.json의 레벨업 값을 더한다)
 2. 점수 카드를 왼쪽부터 하나씩 (보스가 무효로 만든 카드는 칩도 조커 반응도 없이 넘어간다): 카드 칩을 더하고, 그 카드에 반응하는 조커(`onCardScored`)를 왼쪽 조커부터 적용
 3. 손에 들고 있는 강철 카드마다 배수 x1.5
-4. 조커를 왼쪽부터 하나씩 독립 효과(`onIndependent`) 적용
+4. 조커를 왼쪽부터 하나씩: 에디션 호일, 홀로그래픽 -> 독립 효과(`onIndependent`) -> 에디션 폴리크롬
 5. 단계를 위에서부터 차례로 누적한다: 칩과 배수는 더하고, xMult가 있으면 그때까지의 배수에 곱한다. 총점 = 칩 x 배수 (내림)
 
 각 단계는 `ScoreStep` 한 줄로 남겨 화면에 그대로 보여 준다.
