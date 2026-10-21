@@ -34,7 +34,7 @@ npm run build      배포용 빌드 (dist/)
 │  └─ styles/           CSS와 디자인 토큰
 ├─ data/                족보 수치, 블라인드, 조커 목록 같은 고정 자료 (JSON)
 ├─ public/jokers/       화면에 쓰는 조커 그림 (art/에서 변환)
-├─ art/                 ChatGPT로 만든 조커 원본(jokers/)과 그림 견본(sample/)
+├─ art/                 ChatGPT로 만든 조커 원본(jokers/, 표 한 장은 jokers/sheets/)과 그림 견본(sample/)
 ├─ scripts/             그림 변환 스크립트
 ├─ tests/               game/ 규칙 테스트
 └─ docs/
