@@ -10,7 +10,7 @@ import { nextRandom, shuffle } from "./rng";
 import { openPack, packCost, pickFromPack, rollPacks } from "./packs";
 import { ANTE_COUNT, HAND_TYPES, JOKERS, RULES } from "./rules";
 import { scoreHand } from "./scoring";
-import { itemCost, rollOffers, sellValue } from "./shop";
+import { itemCost, planetPool, rollOffers, sellValue } from "./shop";
 import { instantMoney, pickBlindTags, tagDef, takeTags } from "./tags";
 import { addRandomTarots, tarotDef, useTarot } from "./tarots";
 import { consumableSlots, modifiers, pickVoucher, voucherDef, type Modifiers } from "./vouchers";
@@ -107,6 +107,7 @@ export function newRun(seed: number): RunState {
     vouchers: [],
     voucherOffer: null,
     handLevels: Object.fromEntries(HAND_TYPES.map((type) => [type, 1])) as HandLevels,
+    handPlays: {},
     boss: "",
     bossesSeen: [],
     blindTags: [],
@@ -253,6 +254,7 @@ function play(state: RunState): RunState {
     rngState,
     stats,
     handLevels,
+    handPlays: { ...state.handPlays, [result.hand.type]: (state.handPlays[result.hand.type] ?? 0) + 1 },
     deck,
     money: state.money + result.money,
     round: { ...round, score, handsLeft, lastScore: result },
@@ -277,7 +279,7 @@ function discard(state: RunState): RunState {
 function collect(state: RunState): RunState {
   if (!state.cashOut) return state;
   const mods = modifiers(state.vouchers);
-  const [rolled, afterOffers] = rollOffers(state.rngState, mods.shopSlots, mods);
+  const [rolled, afterOffers] = rollOffers(state.rngState, mods.shopSlots, { ...mods, planetIds: planetPool(state.handPlays) });
   const [rolledPacks, rngState] = rollPacks(afterOffers, RULES.packSlots);
   const coupon = takeTags(state.tags, "free_shop");
   const d6 = takeTags(coupon.rest, "free_reroll");
@@ -363,7 +365,7 @@ function sellConsumable(state: RunState, index: number): RunState {
 function reroll(state: RunState): RunState {
   if (!state.shop || state.money < state.shop.rerollCost) return state;
   const mods = modifiers(state.vouchers);
-  const [offers, rngState] = rollOffers(state.rngState, mods.shopSlots, mods);
+  const [offers, rngState] = rollOffers(state.rngState, mods.shopSlots, { ...mods, planetIds: planetPool(state.handPlays) });
   return {
     ...state,
     rngState,

@@ -70,6 +70,8 @@ export interface PlanetDef {
   price: number;
   /** 상점 카드의 행성 그림 색 */
   color: string;
+  /** 비밀 족보 행성. 그 족보를 낸 뒤에만 나온다 */
+  secret?: boolean;
 }
 
 export type BossEffect =
@@ -232,7 +234,8 @@ export type VoucherEffect =
   | { kind: "discards"; amount: number }
   | { kind: "shop_weight"; item: ShopItemKind; multiplier: number }
   | { kind: "interest_cap"; cap: number }
-  | { kind: "hand_size"; amount: number };
+  | { kind: "hand_size"; amount: number }
+  | { kind: "telescope" };
 
 export interface VoucherDef {
   id: string;
@@ -309,6 +312,8 @@ export interface RunState {
   /** 이번 앤티 상점의 바우처. 사면 null, 앤티가 바뀌면 새로 고른다 */
   voucherOffer: string | null;
   handLevels: HandLevels;
+  /** 족보별로 낸 횟수 (비밀 행성, 망원경) */
+  handPlays: Partial<Record<HandType, number>>;
   /** 이번 앤티의 보스 id. 앤티가 바뀔 때 새로 고른다 */
   boss: string;
   /** 이번 판에 나온 보스. 모두 한 번씩 나오기 전에는 같은 보스를 다시 고르지 않는다 */

@@ -75,6 +75,7 @@ describe("플레이와 버리기", () => {
     const after = run(state, ...select("hearts-13", "clubs-13"), { type: "play" });
     expect(after.round).toMatchObject({ score: 60, handsLeft: RULES.hands - 1 });
     expect(after.round.lastScore?.hand.type).toBe("pair");
+    expect(after.handPlays).toEqual({ pair: 1 });
     expect(after.stats).toMatchObject({ bestHand: 60, handsPlayed: 1 });
     expect(after.phase).toBe("round");
   });

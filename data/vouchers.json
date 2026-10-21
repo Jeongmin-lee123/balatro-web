@@ -20,5 +20,7 @@
   { "id": "seed_money", "name": "종잣돈", "description": "이자 상한 $10", "price": 10,
     "effect": { "kind": "interest_cap", "cap": 10 } },
   { "id": "paint_brush", "name": "페인트 붓", "description": "손패 +1", "price": 10,
-    "effect": { "kind": "hand_size", "amount": 1 } }
+    "effect": { "kind": "hand_size", "amount": 1 } },
+  { "id": "telescope", "name": "망원경", "description": "천체 팩에 가장 많이 낸 족보의 행성이 항상 들어간다", "price": 10,
+    "effect": { "kind": "telescope" } }
 ]

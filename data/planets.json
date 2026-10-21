@@ -7,5 +7,8 @@
   { "id": "jupiter", "name": "목성", "hand": "flush", "price": 3, "color": "#c98a5a" },
   { "id": "earth", "name": "지구", "hand": "full_house", "price": 3, "color": "#4f8ac9" },
   { "id": "mars", "name": "화성", "hand": "four_of_a_kind", "price": 3, "color": "#c2553a" },
-  { "id": "neptune", "name": "해왕성", "hand": "straight_flush", "price": 3, "color": "#3d5fc4" }
+  { "id": "neptune", "name": "해왕성", "hand": "straight_flush", "price": 3, "color": "#3d5fc4" },
+  { "id": "planet_x", "name": "행성 X", "hand": "five_of_a_kind", "price": 3, "color": "#6a5a8c", "secret": true },
+  { "id": "ceres", "name": "세레스", "hand": "flush_house", "price": 3, "color": "#8c8a7a", "secret": true },
+  { "id": "eris", "name": "에리스", "hand": "flush_five", "price": 3, "color": "#b8c4d0", "secret": true }
 ]

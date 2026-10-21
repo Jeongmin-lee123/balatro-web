@@ -1,19 +1,27 @@
 import { editionDef, rollJokerEdition } from "./editions";
 import { nextRandom } from "./rng";
 import { JOKER_IDS, JOKERS, PLANET_IDS, PLANETS, RULES, TAROT_IDS, TAROTS } from "./rules";
-import type { RunState, ShopItemKind, ShopOffer } from "./types";
+import type { HandType, RunState, ShopItemKind, ShopOffer } from "./types";
 import { discounted, modifiers } from "./vouchers";
 
-const ITEM_IDS: Record<ShopItemKind, string[]> = { joker: JOKER_IDS, tarot: TAROT_IDS, planet: PLANET_IDS };
-
 const ITEMS = { joker: JOKERS, tarot: TAROTS, planet: PLANETS };
+
+/** 진열될 수 있는 행성. 비밀 행성은 그 족보를 한 번이라도 낸 뒤에만 나온다 */
+export function planetPool(handPlays: Partial<Record<HandType, number>>): string[] {
+  return PLANET_IDS.filter((id) => {
+    const planet = PLANETS[id];
+    return planet && (!planet.secret || (handPlays[planet.hand] ?? 0) > 0);
+  });
+}
 
 export interface ShopRolls {
   shopWeights: Record<ShopItemKind, number>;
   editionRate: number;
+  /** 진열될 수 있는 행성 id (planetPool) */
+  planetIds: string[];
 }
 
-const DEFAULT_ROLLS: ShopRolls = { shopWeights: RULES.shopWeights, editionRate: 1 };
+const DEFAULT_ROLLS: ShopRolls = { shopWeights: RULES.shopWeights, editionRate: 1, planetIds: planetPool({}) };
 
 /** shopWeights 비율로 종류를 고른 뒤, 그 종류 안에서 고르게 하나를 고른다 */
 function rollOne(rngState: number, rolls: ShopRolls): [ShopOffer, number] {
@@ -23,7 +31,7 @@ function rollOne(rngState: number, rolls: ShopRolls): [ShopOffer, number] {
   let threshold = kindRoll * total;
   const kind = weights.find(([, weight]) => (threshold -= weight) < 0)?.[0] ?? "joker";
 
-  const ids = ITEM_IDS[kind];
+  const ids = kind === "joker" ? JOKER_IDS : kind === "tarot" ? TAROT_IDS : rolls.planetIds;
   const [idRoll, afterId] = nextRandom(afterKind);
   const id = ids[Math.floor(idRoll * ids.length)] as string;
   if (kind !== "joker") return [{ kind, id }, afterId];

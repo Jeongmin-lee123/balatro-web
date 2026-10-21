@@ -103,6 +103,13 @@ describe("팩 사고 고르기", () => {
     expect(apply(sold, { type: "pick_pack", index: 0 }).consumables).toEqual(["moon", "star"]);
   });
 
+  it("망원경이 있으면 천체 팩 첫 장은 가장 많이 낸 족보의 행성", () => {
+    const state = { ...newRun(3), vouchers: ["telescope"], handPlays: { pair: 2, flush: 5 } };
+    expect(openPack(state, "celestial").pack.choices[0]).toEqual({ kind: "planet", id: "jupiter" });
+    const never = { ...newRun(3), vouchers: ["telescope"], handPlays: {} };
+    expect(openPack(never, "celestial").pack.choices).toEqual(openPack({ ...never, vouchers: [] }, "celestial").pack.choices);
+  });
+
   it("광대 팩 조커는 에디션과 함께 조커 줄에 들어간다", () => {
     const picked = pickFromPack(withPack({ id: "buffoon", choices: [{ kind: "joker", id: "joker", edition: "foil" }] }), 0);
     expect(picked.jokers.at(-1)).toMatchObject({ defId: "joker", edition: "foil" });

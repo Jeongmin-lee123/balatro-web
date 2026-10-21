@@ -9,7 +9,7 @@
 - 대상 게임: 발라트로 (Balatro). 규칙과 수치는 requirements.md 2.1 (위키 대조 완료)
 - 배포 주소: https://balatro-web-two.vercel.app (main에 push하면 자동 배포)
 - 저장소: https://github.com/Jeongmin-lee123/balatro-web (공개)
-- 테스트: `npm test` 208개 통과, `npm run typecheck` 오류 없음, `npm run build` 성공
+- 테스트: `npm test` 211개 통과, `npm run typecheck` 오류 없음, `npm run build` 성공
 
 | 영역 | 상태 | 비고 |
 |---|---|---|
@@ -29,9 +29,8 @@
 
 추천 순서 (남은 것)
 3. 2차 기능표(F10~F18)는 모두 한 번씩 구현했다. 남은 것은 각 기능의 확장이다
-   - T-033 비밀 족보 행성 3종: 그 족보를 낸 뒤에만 진열. RunState에 낸 족보 기록이 필요하다
    - 일반 카드 에디션(호일, 홀로, 폴리크롬): 스탠다드 팩과 카드 점수 단계에 추가
-   - 남은 바우처(망원경, 마술 묘기, 상형문자, 감독판, 2단계 바우처), 앤티 8 쇼다운 보스
+   - 남은 바우처(마술 묘기, 상형문자, 감독판, 2단계 바우처), 앤티 8 쇼다운 보스
    - 조커 추가 (data/jokers.json, 그림은 사람)
 5. **F16 바우처와 부스터 팩**, **F18 비밀 족보** (F14, F15 이후)
 
@@ -128,3 +127,4 @@ npm run build      배포용 빌드 (dist/)
 | 2026-10-21 | T-031 | Claude | 바우처 11종 규칙(game/vouchers.ts, data/vouchers.json). RULES의 손패, 핸드, 버리기, 상점 칸, 소모품 칸, 이자 상한, 비율을 직접 읽던 15곳을 modifiers로 바꿈. 편집 스크립트의 replace가 $$를 $로 줄여 이자 문구와 금 봉인 문구의 $가 빠졌던 것을 고치고 문구 테스트 추가. 테스트용 withHand가 덱 더미의 같은 카드를 빼도록 고침. SAVE_VERSION 8. 화면은 다음 커밋 |
 | 2026-10-21 | T-031 | Claude | 바우처 화면(상점 바우처 칸, 사이드바 목록). Chrome 확장이 끊겨 브라우저 확인 대신 tests/ui/screens.test.ts(화면 문자열 검사 6개)를 추가. D-018 |
 | 2026-10-21 | T-032 | Claude | 비밀 족보 3종 판정과 점수(data/hands.json에 값). SAVE_VERSION 9. 전용 행성은 T-033으로 |
+| 2026-10-21 | T-033 | Claude | 족보별 낸 횟수(handPlays), 비밀 행성 3종(그 족보를 낸 뒤에만 진열, shop.ts planetPool), 망원경 바우처. SAVE_VERSION 10 |

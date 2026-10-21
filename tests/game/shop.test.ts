@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { JOKER_IDS, PLANET_IDS, RULES, TAROT_IDS } from "../../src/game/rules";
-import { offerPrice, rollOffers, sellValue } from "../../src/game/shop";
+import { offerPrice, planetPool, rollOffers, sellValue } from "../../src/game/shop";
 import type { ShopItemKind } from "../../src/game/types";
 
-const IDS: Record<ShopItemKind, string[]> = { joker: JOKER_IDS, tarot: TAROT_IDS, planet: PLANET_IDS };
+/** 비밀 족보를 내기 전에 나올 수 있는 상품 */
+const IDS: Record<ShopItemKind, string[]> = { joker: JOKER_IDS, tarot: TAROT_IDS, planet: planetPool({}) };
 
 describe("rollOffers", () => {
   it("같은 시드면 같은 진열", () => {
@@ -32,6 +33,19 @@ describe("rollOffers", () => {
     for (const kind of Object.keys(IDS) as ShopItemKind[]) {
       expect(new Set(offers.filter((o) => o.kind === kind).map((o) => o.id)).size).toBe(IDS[kind].length);
     }
+  });
+});
+
+describe("planetPool", () => {
+  it("비밀 행성은 그 족보를 낸 뒤에만 들어간다", () => {
+    expect(planetPool({})).toHaveLength(PLANET_IDS.length - 3);
+    expect(planetPool({ five_of_a_kind: 1 })).toContain("planet_x");
+    expect(planetPool({ five_of_a_kind: 1 })).not.toContain("eris");
+  });
+
+  it("상점 진열도 넘겨준 행성 목록만 쓴다", () => {
+    const [offers] = rollOffers(2, 3000, { shopWeights: { joker: 0, tarot: 0, planet: 1 }, editionRate: 1, planetIds: ["eris"] });
+    expect(new Set(offers.map((o) => o.id))).toEqual(new Set(["eris"]));
   });
 });
 

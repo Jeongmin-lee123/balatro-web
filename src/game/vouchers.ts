@@ -17,6 +17,8 @@ export interface Modifiers {
   editionRate: number;
   /** 상점 가격 할인율 (0.25면 25%) */
   discount: number;
+  /** 망원경: 천체 팩 첫 장이 가장 많이 낸 족보의 행성 */
+  telescope: boolean;
 }
 
 export function voucherDef(id: string): VoucherDef {
@@ -37,6 +39,7 @@ export function modifiers(vouchers: readonly string[]): Modifiers {
     shopWeights: { ...RULES.shopWeights },
     editionRate: 1,
     discount: 0,
+    telescope: false,
   };
   for (const id of vouchers) {
     const { effect } = voucherDef(id);
@@ -70,6 +73,9 @@ export function modifiers(vouchers: readonly string[]): Modifiers {
         break;
       case "hand_size":
         result.handSize += effect.amount;
+        break;
+      case "telescope":
+        result.telescope = true;
         break;
     }
   }

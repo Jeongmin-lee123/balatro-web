@@ -2,10 +2,11 @@
 import { SUITS } from "./deck";
 import { editionFromRoll } from "./editions";
 import { addJoker, hasJokerRoom, usePlanet } from "./inventory";
-import { consumableSlots, discounted, modifiers } from "./vouchers";
 import { nextRandom } from "./rng";
-import { JOKER_IDS, JOKERS, PACK_LIST, PACKS, PLANET_IDS, RULES, TAROT_IDS } from "./rules";
-import type { Card, Enhancement, OpenPack, PackChoice, PackDef, PackOffer, Rank, RunState, Seal } from "./types";
+import { HAND_TYPES, JOKER_IDS, JOKERS, PACK_LIST, PACKS, PLANET_IDS, PLANETS, RULES, TAROT_IDS } from "./rules";
+import { planetPool } from "./shop";
+import type { Card, Enhancement, HandType, OpenPack, PackChoice, PackDef, PackOffer, Rank, RunState, Seal } from "./types";
+import { consumableSlots, discounted, modifiers } from "./vouchers";
 
 const ENHANCEMENTS: readonly Enhancement[] = ["bonus", "mult", "wild", "glass", "steel", "stone", "gold", "lucky"];
 const RANKS: readonly Rank[] = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
@@ -68,13 +69,14 @@ function standardCard(random: () => number, serial: number): Card {
 export function openPack(state: RunState, packId: string): { pack: OpenPack; rngState: number; nextUid: number } {
   const def = packDef(packId);
   const random = randomSource(state.rngState);
+  const planets = planetPool(state.handPlays);
   let nextUid = state.nextUid;
   const choices: PackChoice[] = Array.from({ length: def.choices }, () => {
     switch (def.content) {
       case "tarot":
         return { kind: "tarot", id: pickFrom(TAROT_IDS, random.next()) };
       case "planet":
-        return { kind: "planet", id: pickFrom(PLANET_IDS, random.next()) };
+        return { kind: "planet", id: pickFrom(planets, random.next()) };
       case "joker": {
         const id = pickFrom(JOKER_IDS, random.next());
         const edition = editionFromRoll(random.next(), modifiers(state.vouchers).editionRate);
@@ -84,7 +86,18 @@ export function openPack(state: RunState, packId: string): { pack: OpenPack; rng
         return { kind: "card", card: standardCard(random.next, nextUid++) };
     }
   });
+  const telescope = def.content === "planet" && modifiers(state.vouchers).telescope ? mostPlayedPlanet(state) : null;
+  if (telescope) choices[0] = { kind: "planet", id: telescope };
   return { pack: { id: packId, choices }, rngState: random.state(), nextUid };
+}
+
+/** 망원경: 가장 많이 낸 족보의 행성. 같으면 data/hands.json에서 앞선 족보. 낸 적이 없으면 null */
+function mostPlayedPlanet(state: RunState): string | null {
+  const ranked = Object.entries(state.handPlays)
+    .filter(([, count]) => (count ?? 0) > 0)
+    .sort(([a, x], [b, y]) => (y ?? 0) - (x ?? 0) || HAND_TYPES.indexOf(a as HandType) - HAND_TYPES.indexOf(b as HandType));
+  const hand = ranked[0]?.[0];
+  return hand ? (PLANET_IDS.find((id) => PLANETS[id]?.hand === hand) ?? null) : null;
 }
 
 export function canPick(state: RunState, index: number): boolean {

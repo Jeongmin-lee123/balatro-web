@@ -85,13 +85,13 @@ data/
 ├─ blinds.json           앤티별 기본 점수, 블라인드 배수와 보상
 ├─ rules.json            손패 수, 핸드, 버리기, 조커 칸, 이자, 리롤 값
 ├─ jokers.json           조커 목록 (id, 이름, 가격, 설명, 효과 종류와 값)
-├─ planets.json          행성 9종 (id, 이름, 올리는 족보, 가격, 그림 색)
+├─ planets.json          행성 12종 (id, 이름, 올리는 족보, 가격, 그림 색, 비밀 여부)
 ├─ bosses.json           보스 12종 (id, 이름, 설명, 최소 앤티, 목표 배수, 효과)
 ├─ tags.json             태그 8종 (id, 이름, 설명, 최소 앤티, 효과)
 ├─ tarots.json           타로 21종 (id, 이름, 로마 숫자, 가격, 설명, 효과)
 ├─ editions.json         에디션 4종 (id, 이름, 설명, 상점 확률, 추가 가격, 효과)
 ├─ packs.json            부스터 팩 4종 (id, 이름, 가격, 보여 주는 장수, 비율, 내용)
-├─ vouchers.json         바우처 11종 (id, 이름, 설명, 가격, 효과)
+├─ vouchers.json         바우처 12종 (id, 이름, 설명, 가격, 효과)
 └─ faces.json            J, Q, K 도트 격자와 팔레트
 public/
 └─ jokers/<id>.png       처리된 조커 그림 (256 x 384, 16색, 배경 그대로)
@@ -163,6 +163,7 @@ interface RunState {
   jokers: OwnedJoker[];
   deck: Card[]; consumables: string[]; lastTarot: string | null;   // 판 전체 덱, 소모품 칸, 바보용 (F14)
   handLevels: Record<HandType, number>;   // 족보 레벨, 처음 모두 1 (F10)
+  handPlays: Partial<Record<HandType, number>>;   // 족보별 낸 횟수 (비밀 행성, 망원경)
   boss: string; bossesSeen: string[];     // 이번 앤티 보스, 이번 판에 나온 보스 (F11)
   blindTags: string[]; tags: string[];    // 스몰, 빅 건너뛰기 태그, 보관 중인 태그 (F13)
   round: { drawPile: Card[]; hand: Card[]; selected: string[]; handsLeft: number; discardsLeft: number;
@@ -199,7 +200,7 @@ type Action =
 | blinds.ts | `targetScore(ante, blindIndex, bossMultiplier?): number`, `blindReward(ante, blindIndex): number`, `blindName(blindIndex): string`, `nextBlind(ante, blindIndex)` |
 | bosses.ts | `bossDef(id)`, `pickBoss(rngState, ante, seen)`, `isDebuffed(effect, card)`, `roundLimits(effect)`, `canPlayCount(effect, count)` |
 | economy.ts | `cashOutLines({ ante, blindIndex, handsLeft, money }): CashOut`, `interest(money): number` |
-| shop.ts | `rollOffers(rngState, count): [ShopOffer[], nextState]`, `offerPrice(offer)`, `sellValue(paid): number` |
+| shop.ts | `rollOffers(rngState, count, rolls?): [ShopOffer[], nextState]`, `planetPool(handPlays)`, `offerPrice(offer)`, `itemCost(state, offer)`, `sellValue(paid): number` |
 | run.ts | `newRun(seed): RunState`, `apply(state, action): RunState`, `currentTarget(state)`, `jokerDefs(owned)`, `canBuy(state, slot)`, `canPlay(state)`, `activeBoss(state)` |
 | records.ts | `loadRecords(): Records`, `saveRun(state): Records` |
 | editions.ts | `editionDef(id)`, `editionFromRoll(value)`, `rollJokerEdition(rngState)`, `jokerSlots(jokers)`, `editionBefore(id, source)`, `editionAfter(id, source)` |
