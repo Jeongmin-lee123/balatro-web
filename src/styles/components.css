@@ -631,3 +631,31 @@
 .hand__card.is-debuffed .card-svg {
   filter: grayscale(1) brightness(0.55);
 }
+
+/* 새 게임 확인 */
+.restart {
+  font-size: var(--size-small);
+  color: var(--muted);
+}
+
+.restart summary {
+  cursor: pointer;
+  text-align: center;
+}
+
+.restart[open] {
+  display: grid;
+  gap: var(--gap-2);
+  justify-items: center;
+  text-align: center;
+}
+
+.restart p {
+  margin: 0;
+}
+
+@media (max-width: 899px) {
+  .table__side .restart {
+    grid-column: 1 / -1;
+  }
+}

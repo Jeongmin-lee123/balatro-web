@@ -63,7 +63,8 @@ src/
 │     ├─ shopScreen.ts   상점
 │     └─ endScreen.ts    승리, 패배
 ├─ storage/
-│  └─ records.ts         최고 기록 읽기, 쓰기 (localStorage)
+│  ├─ records.ts         최고 기록 읽기, 쓰기 (localStorage)
+│  └─ savedRun.ts        진행 중인 판 저장, 불러오기 (버전 번호가 다르면 버린다)
 └─ styles/
    ├─ fonts.css          갈무리 글꼴 3개 연결 (패키지 CSS 전체를 쓰지 않는다)
    ├─ tokens.css         색, 글꼴, 간격 변수
@@ -184,6 +185,7 @@ type Action =
 | shop.ts | `rollOffers(rngState, count): [ShopOffer[], nextState]`, `offerPrice(offer)`, `sellValue(paid): number` |
 | run.ts | `newRun(seed): RunState`, `apply(state, action): RunState`, `currentTarget(state)`, `jokerDefs(owned)`, `canBuy(state, slot)`, `canPlay(state)`, `activeBoss(state)` |
 | records.ts | `loadRecords(): Records`, `saveRun(state): Records` |
+| savedRun.ts | `loadSavedRun(): RunState | null`, `storeRun(state)`, `clearSavedRun()`, `SAVE_VERSION` |
 
 ### 4.1 점수 계산 순서 (scoring.ts)
 
@@ -323,3 +325,4 @@ type Action =
 | D-009 | 2026-10-21 | 조커 그림은 배경을 지우지 않고 2:3 비율 그대로 쓴다 | 원본 배경(240,229,205)과 얼굴색(245,235,217)이 거의 같아 배경을 지우면 얼굴도 지워진다. 원본 비율이 2:3이라 자를 필요도 없다 |
 | D-010 | 2026-10-21 | 행성 카드는 사는 즉시 족보 레벨을 올린다. 소모품 칸은 만들지 않는다 | 원작은 소모품 칸에 보관했다가 쓰지만, 타로(F14)가 없는 지금은 보관할 이유가 없다. F14를 만들 때 소모품 칸을 함께 도입한다 |
 | D-011 | 2026-10-21 | 보스는 앤티가 바뀔 때 하나 고르고, 효과는 data/bosses.json의 종류 + 값으로 둔다. 훅과 앤티 8 전용 쇼다운 보스는 제외 | 조커와 같은 방식이라 보스 추가가 데이터 한 줄이 된다. 훅은 무작위 버림 처리가 따로 필요해 다음 작업으로 미룬다 |
+| D-012 | 2026-10-21 | 진행 중인 판은 행동마다 RunState를 통째로 저장하고, 형식이 바뀌면 SAVE_VERSION을 올려 이전 저장을 버린다 | RunState가 순수 데이터라 변환 코드가 필요 없다. 옛 저장을 새 모양으로 옮기는 코드는 지금 규모에서 유지 비용이 더 크다 |

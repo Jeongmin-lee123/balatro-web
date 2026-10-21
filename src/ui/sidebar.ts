@@ -3,7 +3,7 @@ import { ANTE_COUNT } from "../game/rules";
 import { activeBoss, currentTarget } from "../game/run";
 import { handName } from "../game/scoring";
 import type { RunState } from "../game/types";
-import { esc } from "./dom";
+import { button, esc } from "./dom";
 
 const BLIND_CLASS = ["blind--small", "blind--big", "blind--boss"] as const;
 
@@ -58,5 +58,16 @@ export function renderSidebar(state: RunState): string {
       }
       <div class="counter counter--money"><dt>돈</dt><dd>$${state.money}</dd></div>
       <div class="counter counter--ante"><dt>앤티</dt><dd>${state.ante}<small>/${ANTE_COUNT}</small></dd></div>
-    </dl>`;
+    </dl>
+    ${state.phase === "won" || state.phase === "lost" ? "" : restartMenu()}`;
+}
+
+/** 진행 중인 판은 자동 저장되므로, 새로 시작할 때는 한 번 더 확인한다 */
+function restartMenu(): string {
+  return `
+    <details class="restart">
+      <summary>새 게임</summary>
+      <p>지금 판은 저장되어 있습니다. 새로 시작하면 지금 판은 사라집니다.</p>
+      ${button({ action: { type: "new_run" }, label: "지금 판 버리고 새로 시작", className: "btn btn--small btn--discard", key: "restart" })}
+    </details>`;
 }
