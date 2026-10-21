@@ -7,7 +7,7 @@
 
 - 단계: 게임 규칙 완료, 화면 구현 전
 - 대상 게임: 발라트로 (Balatro). 규칙과 수치는 requirements.md 2.1 (위키 대조 완료)
-- 배포 주소: https://balatro-web-two.vercel.app (CLI 배포. GitHub 자동 배포는 아직)
+- 배포 주소: https://balatro-web-two.vercel.app (main에 push하면 자동 배포)
 - 저장소: https://github.com/Jeongmin-lee123/balatro-web (공개)
 - 테스트: `npm test` 82개 통과, `npm run typecheck` 오류 없음, `npm run build` 성공
 
@@ -19,7 +19,7 @@
 | 조커 원본 그림 `art/jokers/` (T-016) | 완료 | 10장 모두 |
 | 화면 `src/ui/` (T-011 ~ T-014) | 시작 전 | main.ts는 빈 테이블만 그린다 |
 | 조커 그림 변환 (T-015) | 시작 전 | |
-| 배포 (T-004) | 일부 완료 | Vercel 프로젝트 balatro-web에 CLI로 배포됨. GitHub 연결 후 자동 배포 필요 |
+| 배포 (T-004) | 완료 | GitHub main push -> Vercel 자동 배포 |
 
 ## 다음 할 일
 
@@ -29,8 +29,7 @@
 2. **T-012 라운드 화면**: `main.ts`에서 `newRun` -> `apply` -> `render` 반복 구조를 만든다.
 3. **T-013 정산과 상점**, **T-014 끝 화면과 기록**
 4. **T-015 조커 그림 변환** (T-013 이후). 주의할 그림 목록이 tasks.md에 있다.
-5. **T-004 나머지** (사람): Vercel 프로젝트 balatro-web의 Settings > Git에서 GitHub 저장소를 연결한다. CLI의 `vercel git connect`는 Vercel GitHub 앱이 설치되지 않아 실패했다. 그 전까지는 `npx vercel deploy --prod`로 직접 배포한다(Vercel 로그인 필요).
-6. **T-017 마무리 점검**
+5. **T-017 마무리 점검**
 
 ## 이어받는 사람이 알아야 할 것
 
@@ -88,3 +87,4 @@ npm run build      배포용 빌드 (dist/)
 | 2026-10-21 | 인계 | Claude | 얼굴 카드 도트를 data/faces.json으로, 견본 페이지를 art/sample/로 보관. T-011~T-014, T-017 작업 상세 작성. 이 문서를 인계용으로 정리 |
 | 2026-10-21 | T-004 | Claude | Vercel 프로젝트 balatro-web 생성, CLI로 프로덕션 배포. 지금은 빈 테이블 화면만 보인다 |
 | 2026-10-21 | T-004 | Claude | GitHub 공개 저장소 생성과 push. vercel git connect는 실패(Vercel GitHub 앱 미설치로 추정). README에 참여 방법 추가 |
+| 2026-10-21 | T-004 | Claude | 사용자가 Vercel GitHub 앱 설치, vercel git connect 성공. main push 자동 배포 확인 |
