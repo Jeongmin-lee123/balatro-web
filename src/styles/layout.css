@@ -64,6 +64,14 @@
     display: none;
   }
 
+  .table__side .cxm-wrap {
+    grid-column: 1 / -1;
+    grid-auto-flow: column;
+    justify-content: center;
+    align-items: center;
+    gap: var(--gap-3);
+  }
+
   .table__side .counters {
     grid-column: 1 / -1;
     grid-template-columns: repeat(4, minmax(0, 1fr));
